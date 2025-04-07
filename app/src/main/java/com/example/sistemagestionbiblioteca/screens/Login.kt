@@ -35,7 +35,7 @@ fun Login(navController: NavController) {
     val context = LocalContext.current
 
     val gradientBrush = Brush.radialGradient(
-        colors = listOf(Color(0xFF045043), Color.Black),
+        colors = listOf(Color(0xFFF6E6CA), Color(0xFFF6E6CA)),
         center = Offset(0.5f, 0.5f),
         radius = 2000f
     )
@@ -57,13 +57,13 @@ fun Login(navController: NavController) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text("Iniciar Sesión", fontSize = 30.sp, color = Color.White)
+                Text("Iniciar Sesión", fontSize = 30.sp, color = Color(0xFFDC993F))
                 Spacer(modifier = Modifier.height(40.dp))
 
                 OutlinedTextField(
                     value = email,
                     onValueChange = { email = it },
-                    label = { Text("Correo o usuario", color = Color.White) },
+                    label = { Text("Correo o usuario", color = Color(0xFF886742)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     modifier = Modifier.fillMaxWidth(),
@@ -75,7 +75,7 @@ fun Login(navController: NavController) {
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Contraseña", color = Color.White) },
+                    label = { Text("Contraseña", color = Color(0xFF886742)) },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
@@ -84,7 +84,7 @@ fun Login(navController: NavController) {
                             Icon(
                                 imageVector = if (showPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                 contentDescription = null,
-                                tint = Color(0xFF00FFFB)
+                                tint = Color(0xFFF6B459)
                             )
                         }
                     },
@@ -99,7 +99,7 @@ fun Login(navController: NavController) {
                         navController.navigate(AppScreens.Home.route)
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF67A867))
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF6B459),contentColor = Color(0xFF886742))
                 ) {
                     Text("Iniciar sesión")
                 }
@@ -109,7 +109,7 @@ fun Login(navController: NavController) {
                 TextButton(
                     onClick = { navController.navigate(AppScreens.Register.route) }
                 ) {
-                    Text("¿No tienes cuenta? Regístrate", color = Color.White)
+                    Text("¿No tienes cuenta? Regístrate", color = Color(0xFFDC993F))
                 }
 
                 if (errorMessage.isNotEmpty()) {
@@ -123,13 +123,13 @@ fun Login(navController: NavController) {
 
 @Composable
 fun textFieldColors() = TextFieldDefaults.colors(
-    unfocusedTextColor = Color.White,
-    focusedTextColor = Color.White,
+    unfocusedTextColor = Color(0xFFFAA634),
+    focusedTextColor = Color(0xFFFAA634),
     unfocusedContainerColor = Color.Transparent,
     focusedContainerColor = Color.Transparent,
-    focusedIndicatorColor = Color.White,
-    unfocusedIndicatorColor = Color.White,
-    cursorColor = Color.White,
-    focusedLabelColor = Color.White,
-    unfocusedLabelColor = Color.White
+    focusedIndicatorColor = Color(0xFFFAA634),
+    unfocusedIndicatorColor = Color(0xFFFAA634),
+    cursorColor = Color(0xFFFAA634),
+    focusedLabelColor = Color.Black,
+    unfocusedLabelColor = Color.Black
 )
