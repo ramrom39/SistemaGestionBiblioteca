@@ -21,8 +21,7 @@ import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.sistemagestionbiblioteca.navigation.AppNavigation
-import com.example.sistemagestionbiblioteca.navigation.AppNavigation
+import com.example.sistemagestionbiblioteca.navigation.AppScreens
 
 @Composable
 fun Login(navController: NavController) {
@@ -32,8 +31,6 @@ fun Login(navController: NavController) {
     var showPassword by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
-    val context = LocalContext.current
-
     val gradientBrush = Brush.radialGradient(
         colors = listOf(Color(0xFF045043), Color.Black),
         center = Offset(0.5f, 0.5f),
@@ -41,12 +38,12 @@ fun Login(navController: NavController) {
     )
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        bottomBar = { BottomBar(navController) } // 👈 Solo para probar
+        modifier = Modifier.fillMaxSize()
+        // ❌ NO hay bottomBar aquí
     ) { innerPadding ->
         Box(
             modifier = Modifier
-                .padding(innerPadding)
+                .padding(60.dp)
                 .fillMaxSize()
                 .background(gradientBrush)
                 .pointerInput(Unit) { detectTapGestures { focusManager.clearFocus() } }

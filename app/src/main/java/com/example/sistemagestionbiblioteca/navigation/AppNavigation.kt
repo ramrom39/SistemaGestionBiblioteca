@@ -32,136 +32,143 @@ import com.example.sistemagestionbiblioteca.screens.Home
 import com.example.sistemagestionbiblioteca.screens.Shelves
 import com.example.sistemagestionbiblioteca.screens.History
 
-
-
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.ui.draw.drawBehind
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    NavHost(
-        navController = navController,
-        startDestination = AppScreens.Login.route,
-        modifier = Modifier.background(Color(0xFF002A40))
-    ) {
-        composable(AppScreens.Login.route) {
-            Login(navController)
-        }
+    Scaffold(
+        bottomBar = {
+            BottomBar(navController) // ✅ BottomBar centralizada aquí
+        },
+        containerColor = Color(0xFFFCFCFC)
+    ) { innerPadding ->
 
-        composable(AppScreens.Register.route) {
-            Register(navController)
-        }
-
-        composable(AppScreens.Home.route) {
-            Home(navController)
-        }
-
-        composable(AppScreens.History.route) {
-            History(navController)
-        }
-
-        composable(AppScreens.Shelves.route) {
-            Shelves(navController)
-        }
-
-    }
-
-
-    @Composable
-    fun BottomBar(navController: NavController) {
-        val currentRoute = navController.currentBackStackEntry?.destination?.route
-
-        val visibleRoutes = listOf(
-            AppScreens.Home.route,
-            AppScreens.History.route,
-            AppScreens.Shelves.route
-        )
-
-        if (currentRoute !in visibleRoutes) return
-
-        val gradientBrush = Brush.linearGradient(
-            colors = listOf(
-                Color(0xFF67A867), // Verde claro
-                Color(0xFF5FA85F)  // Verde oscuro
-            )
-        )
-
-        BottomAppBar(
-            containerColor = Color.Transparent,
-            contentColor = Color.White,
+        NavHost(
+            navController = navController,
+            startDestination = AppScreens.Login.route,
             modifier = Modifier
-                .fillMaxWidth()
-                .drawBehind { drawRect(gradientBrush) }
-                .height(54.dp)
+                .padding(innerPadding)
         ) {
-            NavigationBarItem(
-                icon = {
-                    Icon(
-                        imageVector = Icons.Filled.Home,
-                        contentDescription = "Inicio",
-                        modifier = Modifier.size(30.dp)
-                    )
-                },
-                selected = currentRoute == AppScreens.Home.route,
-                onClick = {
-                    if (currentRoute != AppScreens.Home.route) {
-                        navController.navigate(AppScreens.Home.route)
-                    }
-                },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color(0xFFCBEA7B),
-                    unselectedIconColor = Color.White,
-                    indicatorColor = Color.Transparent
-                )
-            )
-
-            NavigationBarItem(
-                icon = {
-                    Icon(
-                        imageVector = Icons.Filled.Search,
-                        contentDescription = "Historial",
-                        modifier = Modifier.size(30.dp)
-                    )
-                },
-                selected = currentRoute == AppScreens.History.route,
-                onClick = {
-                    if (currentRoute != AppScreens.History.route) {
-                        navController.navigate(AppScreens.History.route)
-                    }
-                },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color(0xFFCBEA7B),
-                    unselectedIconColor = Color.White,
-                    indicatorColor = Color.Transparent
-                )
-            )
-
-            NavigationBarItem(
-                icon = {
-                    Icon(
-                        imageVector = Icons.Filled.AddCircle,
-                        contentDescription = "Estanterías",
-                        modifier = Modifier.size(30.dp)
-                    )
-                },
-                selected = currentRoute == AppScreens.Shelves.route,
-                onClick = {
-                    if (currentRoute != AppScreens.Shelves.route) {
-                        navController.navigate(AppScreens.Shelves.route)
-                    }
-                },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color(0xFFCBEA7B),
-                    unselectedIconColor = Color.White,
-                    indicatorColor = Color.Transparent
-                )
-            )
+            composable(AppScreens.Login.route) {
+                Login(navController)
+            }
+            composable(AppScreens.Register.route) {
+                Register(navController)
+            }
+            composable(AppScreens.Home.route) {
+                Home(navController)
+            }
+            composable(AppScreens.History.route) {
+                History(navController)
+            }
+            composable(AppScreens.Shelves.route) {
+                Shelves(navController)
+            }
         }
     }
+}
 
+@Composable
+fun BottomBar(navController: NavController) {
+    val currentRoute = navController.currentBackStackEntry?.destination?.route
+
+    // Rutas donde se debe mostrar la BottomBar
+    val visibleRoutes = listOf(
+        AppScreens.Home.route,
+        AppScreens.Shelves.route,
+        AppScreens.History.route
+    )
+
+    // Si la ruta actual no está en la lista, no mostramos la BottomBar
+    if (currentRoute !in visibleRoutes) return
+
+    // Gradiente de fondo para la barra
+    val gradientBrush = Brush.linearGradient(
+        colors = listOf(
+            Color(0xFF67A867), // Verde claro
+            Color(0xFF5FA85F)  // Verde más oscuro
+        )
+    )
+
+    BottomAppBar(
+        containerColor = Color.Transparent,
+        contentColor = Color.White,
+        modifier = Modifier
+            .fillMaxWidth()
+            .drawBehind { drawRect(gradientBrush) }
+            .height(54.dp)
+    ) {
+        // HOME
+        NavigationBarItem(
+            icon = {
+                Icon(
+                    imageVector = Icons.Filled.Home,
+                    contentDescription = "Inicio",
+                    modifier = Modifier.size(30.dp)
+                )
+            },
+            selected = currentRoute == AppScreens.Home.route,
+            onClick = {
+                if (currentRoute != AppScreens.Home.route) {
+                    navController.navigate(AppScreens.Home.route)
+                }
+            },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = Color(0xFFCBEA7B),
+                unselectedIconColor = Color.White,
+                indicatorColor = Color.Transparent
+            )
+        )
+
+        // HISTORY
+        NavigationBarItem(
+            icon = {
+                Icon(
+                    imageVector = Icons.Filled.Search,
+                    contentDescription = "Historial",
+                    modifier = Modifier.size(30.dp)
+                )
+            },
+            selected = currentRoute == AppScreens.History.route,
+            onClick = {
+                if (currentRoute != AppScreens.History.route) {
+                    navController.navigate(AppScreens.History.route)
+                }
+            },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = Color(0xFFCBEA7B),
+                unselectedIconColor = Color.White,
+                indicatorColor = Color.Transparent
+            )
+        )
+
+        // SHELVES
+        NavigationBarItem(
+            icon = {
+                Icon(
+                    imageVector = Icons.Filled.AddCircle,
+                    contentDescription = "Estanterías",
+                    modifier = Modifier.size(30.dp)
+                )
+            },
+            selected = currentRoute == AppScreens.Shelves.route,
+            onClick = {
+                if (currentRoute != AppScreens.Shelves.route) {
+                    navController.navigate(AppScreens.Shelves.route)
+                }
+            },
+            colors = NavigationBarItemDefaults.colors(
+                selectedIconColor = Color(0xFFCBEA7B),
+                unselectedIconColor = Color.White,
+                indicatorColor = Color.Transparent
+            )
+        )
+    }
 }
