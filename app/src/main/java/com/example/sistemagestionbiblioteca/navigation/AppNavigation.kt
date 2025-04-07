@@ -43,18 +43,9 @@ import androidx.compose.ui.draw.drawBehind
 fun AppNavigation() {
     val navController = rememberNavController()
 
-    Scaffold(
-        bottomBar = {
-            BottomBar(navController) // ✅ BottomBar centralizada aquí
-        },
-        containerColor = Color(0xFFFCFCFC)
-    ) { innerPadding ->
-
         NavHost(
             navController = navController,
             startDestination = AppScreens.Login.route,
-            modifier = Modifier
-                .padding(innerPadding)
         ) {
             composable(AppScreens.Login.route) {
                 Login(navController)
@@ -73,102 +64,3 @@ fun AppNavigation() {
             }
         }
     }
-}
-
-@Composable
-fun BottomBar(navController: NavController) {
-    val currentRoute = navController.currentBackStackEntry?.destination?.route
-
-    // Rutas donde se debe mostrar la BottomBar
-    val visibleRoutes = listOf(
-        AppScreens.Home.route,
-        AppScreens.Shelves.route,
-        AppScreens.History.route
-    )
-
-    // Si la ruta actual no está en la lista, no mostramos la BottomBar
-    if (currentRoute !in visibleRoutes) return
-
-    // Gradiente de fondo para la barra
-    val gradientBrush = Brush.linearGradient(
-        colors = listOf(
-            Color(0xFF67A867), // Verde claro
-            Color(0xFF5FA85F)  // Verde más oscuro
-        )
-    )
-
-    BottomAppBar(
-        containerColor = Color.Transparent,
-        contentColor = Color.White,
-        modifier = Modifier
-            .fillMaxWidth()
-            .drawBehind { drawRect(gradientBrush) }
-            .height(54.dp)
-    ) {
-        // HOME
-        NavigationBarItem(
-            icon = {
-                Icon(
-                    imageVector = Icons.Filled.Home,
-                    contentDescription = "Inicio",
-                    modifier = Modifier.size(30.dp)
-                )
-            },
-            selected = currentRoute == AppScreens.Home.route,
-            onClick = {
-                if (currentRoute != AppScreens.Home.route) {
-                    navController.navigate(AppScreens.Home.route)
-                }
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFFCBEA7B),
-                unselectedIconColor = Color.White,
-                indicatorColor = Color.Transparent
-            )
-        )
-
-        // HISTORY
-        NavigationBarItem(
-            icon = {
-                Icon(
-                    imageVector = Icons.Filled.Search,
-                    contentDescription = "Historial",
-                    modifier = Modifier.size(30.dp)
-                )
-            },
-            selected = currentRoute == AppScreens.History.route,
-            onClick = {
-                if (currentRoute != AppScreens.History.route) {
-                    navController.navigate(AppScreens.History.route)
-                }
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFFCBEA7B),
-                unselectedIconColor = Color.White,
-                indicatorColor = Color.Transparent
-            )
-        )
-
-        // SHELVES
-        NavigationBarItem(
-            icon = {
-                Icon(
-                    imageVector = Icons.Filled.AddCircle,
-                    contentDescription = "Estanterías",
-                    modifier = Modifier.size(30.dp)
-                )
-            },
-            selected = currentRoute == AppScreens.Shelves.route,
-            onClick = {
-                if (currentRoute != AppScreens.Shelves.route) {
-                    navController.navigate(AppScreens.Shelves.route)
-                }
-            },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color(0xFFCBEA7B),
-                unselectedIconColor = Color.White,
-                indicatorColor = Color.Transparent
-            )
-        )
-    }
-}
