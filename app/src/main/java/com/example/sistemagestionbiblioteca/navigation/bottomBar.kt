@@ -1,10 +1,14 @@
 package com.example.sistemagestionbiblioteca.navigation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
@@ -17,6 +21,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
@@ -28,11 +33,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
 fun BottomBar(navController: NavController) {
-    // Utilizamos currentBackStackEntryAsState para observar los cambios en la navegación.
+    // Observa los cambios en la navegación.
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Rutas donde se debe mostrar la BottomBar
+    // Rutas en las que se muestra la BottomBar.
     val visibleRoutes = listOf(
         AppScreens.Home.route,
         AppScreens.History.route,
@@ -40,15 +45,15 @@ fun BottomBar(navController: NavController) {
     )
     if (currentRoute !in visibleRoutes) return
 
-    // Definimos el gradiente de fondo para la BottomBar
-    val gradientBrush = Brush.linearGradient(
+    // Gradiente vertical para el fondo de la BottomBar:
+    val gradientBrush = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFFAF9F7),
-            Color(0xFFFAF9F7)
+            Color(0xFFE3B47B),  // Color superior
+            Color(0xFFF8B75E)   // Color inferior
         )
     )
 
-    // Envolvemos la BottomAppBar en una Surface con esquinas redondeadas
+    // Envolvemos la BottomAppBar en una Surface con esquinas redondeadas.
     androidx.compose.material3.Surface(
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
         modifier = Modifier.fillMaxWidth(),
@@ -59,22 +64,39 @@ fun BottomBar(navController: NavController) {
             modifier = Modifier
                 .fillMaxWidth()
                 .drawBehind {
-                    // Convertimos 16.dp a pixeles para el radio de esquina
+                    // Convertimos 16.dp a pixeles para el radio de esquina.
                     val radius = 16.dp.toPx()
-                    drawRoundRect(brush = gradientBrush, cornerRadius = CornerRadius(radius, radius))
+                    drawRoundRect(
+                        brush = gradientBrush,
+                        cornerRadius = CornerRadius(radius, radius)
+                    )
                 }
-                .height(75.dp)
+                .height(70.dp)
                 .navigationBarsPadding(),
             contentColor = Color.White
         ) {
-            // Ítem para Home
+            // Ítem para Home.
             NavigationBarItem(
                 icon = {
-                    Icon(
-                        imageVector = Icons.Filled.Home,
-                        contentDescription = "Inicio",
-                        modifier = Modifier.size(35.dp)
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Filled.Home,
+                            contentDescription = "Inicio",
+                            modifier = Modifier.size(36.dp)
+                        )
+                        if (currentRoute == AppScreens.Home.route) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Box(
+                                modifier = Modifier
+                                    .width(24.dp)
+                                    .height(2.dp)
+                                    .background(
+                                        color = Color(0xFFFFFFFF),
+                                        shape = RoundedCornerShape(1.dp)
+                                    )
+                            )
+                        }
+                    }
                 },
                 selected = currentRoute == AppScreens.Home.route,
                 onClick = {
@@ -83,20 +105,34 @@ fun BottomBar(navController: NavController) {
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color(0xFFF6B459),
-                    unselectedIconColor = Color(0xFFF1CFB8),
+                    selectedIconColor = Color(0xFFFFFFFF),
+                    unselectedIconColor = Color(0xFFFDFCFC),
                     indicatorColor = Color.Transparent
                 )
             )
 
-            // Ítem para Historial (usa el icono History)
+            // Ítem para Historial.
             NavigationBarItem(
                 icon = {
-                    Icon(
-                        imageVector = Icons.Filled.Schedule,
-                        contentDescription = "Historial",
-                        modifier = Modifier.size(35.dp)
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Filled.Schedule,
+                            contentDescription = "Historial",
+                            modifier = Modifier.size(36.dp)
+                        )
+                        if (currentRoute == AppScreens.History.route) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Box(
+                                modifier = Modifier
+                                    .width(24.dp)
+                                    .height(2.dp)
+                                    .background(
+                                        color = Color(0xFFFFFFFF),
+                                        shape = RoundedCornerShape(1.dp)
+                                    )
+                            )
+                        }
+                    }
                 },
                 selected = currentRoute == AppScreens.History.route,
                 onClick = {
@@ -105,20 +141,34 @@ fun BottomBar(navController: NavController) {
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color(0xFFF6B459),
-                    unselectedIconColor = Color(0xFFF1CFB8),
+                    selectedIconColor = Color(0xFFFFFFFF),
+                    unselectedIconColor = Color(0xFFFAEEE7),
                     indicatorColor = Color.Transparent
                 )
             )
 
-            // Ítem para Biblioteca (usa el icono MenuBook)
+            // Ítem para Biblioteca.
             NavigationBarItem(
                 icon = {
-                    Icon(
-                        imageVector = Icons.Filled.MenuBook,
-                        contentDescription = "Biblioteca",
-                        modifier = Modifier.size(35.dp)
-                    )
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(
+                            imageVector = Icons.Filled.MenuBook,
+                            contentDescription = "Biblioteca",
+                            modifier = Modifier.size(36.dp)
+                        )
+                        if (currentRoute == AppScreens.Shelves.route) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Box(
+                                modifier = Modifier
+                                    .width(24.dp)
+                                    .height(2.dp)
+                                    .background(
+                                        color = Color(0xFFFFFFFF),
+                                        shape = RoundedCornerShape(1.dp)
+                                    )
+                            )
+                        }
+                    }
                 },
                 selected = currentRoute == AppScreens.Shelves.route,
                 onClick = {
@@ -127,8 +177,8 @@ fun BottomBar(navController: NavController) {
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = Color(0xFFF6B459),
-                    unselectedIconColor = Color(0xFFF1CFB8),
+                    selectedIconColor = Color(0xFFFFFFFF),
+                    unselectedIconColor = Color(0xFFFAEEE7),
                     indicatorColor = Color.Transparent
                 )
             )

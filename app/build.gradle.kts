@@ -70,7 +70,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
 
-
     implementation("androidx.compose.material3:material3:1.3.1-beta02")
     implementation("androidx.navigation:navigation-compose:2.8.5")
     implementation("com.google.accompanist:accompanist-navigation-animation:0.31.0-alpha")

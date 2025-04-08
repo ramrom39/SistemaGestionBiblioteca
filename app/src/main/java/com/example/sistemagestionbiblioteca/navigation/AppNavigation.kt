@@ -45,24 +45,24 @@ import androidx.compose.ui.draw.drawBehind
 fun AppNavigation() {
     val navController = rememberNavController()
 
-        NavHost(
-            navController = navController,
-            startDestination = AppScreens.Login.route,
-        ) {
-            composable(AppScreens.Login.route) {
-                Login(navController)
-            }
-            composable(AppScreens.Register.route) {
-                Register(navController)
-            }
-            composable(AppScreens.Home.route) {
-                Home(navController)
-            }
-            composable(AppScreens.History.route) {
-                History(navController)
-            }
-            composable(AppScreens.Shelves.route) {
-                Shelves(navController)
-            }
+    NavHost(
+        navController = navController,
+        startDestination = AppScreens.Login.route,
+    ) {
+        composable(AppScreens.Login.route) {
+            Login(navController)
         }
+        composable(AppScreens.Register.route) {
+            Register(navController)
+        }
+        composable(AppScreens.Home.route) {
+            Home(navController)
+        }
+        composable(AppScreens.History.route) {
+            History(navController)
+        }
+        composable(AppScreens.Shelves.route) {
+            Shelves(navController)
+        }
+    }
     }

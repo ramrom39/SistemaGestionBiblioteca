@@ -19,13 +19,14 @@ import com.example.sistemagestionbiblioteca.navigation.BottomBar
 fun Home(navController: NavController) {
     Scaffold(
         bottomBar = { BottomBar(navController) },
-        containerColor = Color(0xFFF6E6CA)
+        containerColor = Color(0xFFF3F3F3)
+
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding) // Respeta el padding del Scaffold para que no tape la BottomBar
-                .background(Color(0xFFF6E6CA)), // Fondo azul oscuro para Home
+                .background(Color(0xFFF3F3F3)), // Fondo azul oscuro para Home
             contentAlignment = Alignment.Center
         ) {
             Text(text = "Pantalla de Home", color = Color.Black, fontSize = 24.sp)

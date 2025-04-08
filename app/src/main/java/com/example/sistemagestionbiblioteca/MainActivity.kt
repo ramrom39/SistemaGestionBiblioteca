@@ -1,5 +1,6 @@
 package com.example.sistemagestionbiblioteca
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -21,7 +22,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         // Evita que el sistema ajuste los insets para que puedas ocultar las barras del sistema.
         WindowCompat.setDecorFitsSystemWindows(window, false)
 

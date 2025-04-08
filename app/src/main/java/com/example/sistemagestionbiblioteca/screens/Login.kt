@@ -1,5 +1,7 @@
 package com.example.sistemagestionbiblioteca.screens
 
+import android.app.Activity
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -20,8 +22,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.NavController
 import com.example.sistemagestionbiblioteca.navigation.AppScreens
+
 import com.example.sistemagestionbiblioteca.navigation.BottomBar
 
 @Composable
@@ -31,14 +36,15 @@ fun Login(navController: NavController) {
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
-
     val context = LocalContext.current
+    // Usa DisposableEffect para ocultar la barra de navegación mientras se muestra la pantalla Login.
 
     val gradientBrush = Brush.radialGradient(
-        colors = listOf(Color(0xFFF6E6CA), Color(0xFFF6E6CA)),
+        colors = listOf(Color(0xFFF6E6CA), Color(0xFFF5EADA)),
         center = Offset(0.5f, 0.5f),
         radius = 2000f
     )
+
 
     Scaffold(
         modifier = Modifier.fillMaxSize()
