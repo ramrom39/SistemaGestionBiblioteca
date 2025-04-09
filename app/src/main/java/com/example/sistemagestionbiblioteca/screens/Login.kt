@@ -1,7 +1,5 @@
 package com.example.sistemagestionbiblioteca.screens
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -11,40 +9,55 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.*
-import androidx.compose.ui.draw.drawBehind
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.input.*
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.sistemagestionbiblioteca.navigation.AppScreens
-
-import com.example.sistemagestionbiblioteca.navigation.BottomBar
+import com.example.sistemagestionbiblioteca.features.users.LoginViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun Login(navController: NavController) {
     val focusManager = LocalFocusManager.current
+
+    // Campos para email y contraseña
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
-    val context = LocalContext.current
-    // Usa DisposableEffect para ocultar la barra de navegación mientras se muestra la pantalla Login.
 
+    // Obtenemos el LoginViewModel
+    val loginViewModel: LoginViewModel = viewModel()
+
+    // Observamos la respuesta y el error del login
+    val loginResponse by loginViewModel.loginResponse.observeAsState()
+    val errorMessage by loginViewModel.errorMessage.observeAsState()
+
+    // Navega a Home si el login es exitoso
+    LaunchedEffect(loginResponse) {
+        if (loginResponse == "loginexistoso") {
+            delay(300)
+            navController.navigate(AppScreens.Home.route)
+        }
+    }
+
+    // Fondo con degradado
     val gradientBrush = Brush.radialGradient(
         colors = listOf(Color(0xFFF6E6CA), Color(0xFFF5EADA)),
         center = Offset(0.5f, 0.5f),
         radius = 2000f
     )
-
 
     Scaffold(
         modifier = Modifier.fillMaxSize()
@@ -102,10 +115,14 @@ fun Login(navController: NavController) {
 
                 Button(
                     onClick = {
-                        navController.navigate(AppScreens.Home.route)
+                        // Llamamos al método del ViewModel para iniciar sesión
+                        loginViewModel.loginUser(email, password)
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF6B459),contentColor = Color(0xFF886742))
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF6B459),
+                        contentColor = Color(0xFF886742)
+                    )
                 ) {
                     Text("Iniciar sesión")
                 }
@@ -118,9 +135,10 @@ fun Login(navController: NavController) {
                     Text("¿No tienes cuenta? Regístrate", color = Color(0xFFDC993F))
                 }
 
-                if (errorMessage.isNotEmpty()) {
+                // Muestra error, si lo hay
+                if (!errorMessage.isNullOrEmpty()) {
                     Spacer(modifier = Modifier.height(12.dp))
-                    Text(text = errorMessage, color = Color.Red)
+                    Text(text = errorMessage!!, color = Color.Red)
                 }
             }
         }
