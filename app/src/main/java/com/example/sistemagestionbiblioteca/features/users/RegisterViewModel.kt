@@ -31,14 +31,20 @@ class RegisterViewModel : ViewModel() {
                 if (response.isSuccessful && response.body() != null) {
                     _registerResponse.postValue(response.body()!!.message)
                 } else if (response.code() == 409) {
-                    // Si recibimos un conflicto, parseamos el error para obtener los datos del usuario existente.
+                    // En caso de conflicto, se analiza el error
                     val errorJson = response.errorBody()?.string()
                     val gson = Gson()
                     try {
-                        val existResponse = gson.fromJson(errorJson, UserExistsResponse::class.java)
-                        _errorMessage.postValue("El usuario ${existResponse.usuario} ya existe")
+                        // Si el error recibido contiene la palabra "correo" se asume que es duplicado de correo.
+                        if (errorJson?.contains("correo", ignoreCase = true) == true) {
+                            _errorMessage.postValue("El correo electrónico ya existe")
+                        } else {
+                            // De lo contrario, se intenta parsear el error como usuario duplicado.
+                            val existResponse = gson.fromJson(errorJson, UserExistsResponse::class.java)
+                            _errorMessage.postValue("El usuario ${existResponse.usuario} ya existe")
+                        }
                     } catch (e: Exception) {
-                        _errorMessage.postValue("El usuario ya existe")
+                        _errorMessage.postValue("Error 409: Registro duplicado")
                     }
                 } else {
                     _errorMessage.postValue("Error ${response.code()}: No se pudo registrar el usuario")
@@ -49,5 +55,9 @@ class RegisterViewModel : ViewModel() {
                 _errorMessage.postValue(t.localizedMessage ?: "Error desconocido")
             }
         })
+    }
+
+    fun clearError() {
+        _errorMessage.value = ""
     }
 }

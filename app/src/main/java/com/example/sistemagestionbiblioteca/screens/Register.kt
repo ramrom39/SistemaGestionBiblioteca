@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -90,22 +91,86 @@ fun Register(navController: NavController) {
                 .padding(innerPadding)
                 .fillMaxSize()
                 .background(gradientBrush)
-                .pointerInput(Unit) { detectTapGestures { focusManager.clearFocus() } }
+                .pointerInput(Unit) { detectTapGestures { focusManager.clearFocus() } },
+            contentAlignment = Alignment.Center // Centra verticalmente el contenido
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+                    .fillMaxWidth(0.9f)
+                    .padding(horizontal = 8.dp, vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center // Centra verticalmente los elementos de la columna
             ) {
-                // Campo para Nombre con asterisco condicional
+                // Título de la pantalla
+                Text(
+                    text = "Registro",
+                    fontSize = 30.sp,
+                    color = Color(0xFFDC993F)
+                )
+                Spacer(modifier = Modifier.height(40.dp))
+
+                // Row para agrupar Nombre y Apellidos
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedTextField(
+                        value = nombre,
+                        onValueChange = { nombre = it },
+                        label = {
+                            Text(
+                                buildAnnotatedString {
+                                    append("Nombre")
+                                    if (showErrors && nombre.isEmpty()) {
+                                        withStyle(style = androidx.compose.ui.text.SpanStyle(color = Color.Red)) {
+                                            append(" *")
+                                        }
+                                    }
+                                },
+                                color = Color(0xFFDC993F)
+                            )
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = textFieldColors()
+                    )
+                    OutlinedTextField(
+                        value = apellidos,
+                        onValueChange = { apellidos = it },
+                        label = {
+                            Text(
+                                buildAnnotatedString {
+                                    append("Apellidos")
+                                    if (showErrors && apellidos.isEmpty()) {
+                                        withStyle(style = androidx.compose.ui.text.SpanStyle(color = Color.Red)) {
+                                            append(" *")
+                                        }
+                                    }
+                                },
+                                color = Color(0xFFDC993F)
+                            )
+                        },
+                        modifier = Modifier.weight(1f),
+                        colors = textFieldColors()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Campo para Usuario con asterisco condicional y trailingIcon para duplicidad
                 OutlinedTextField(
-                    value = nombre,
-                    onValueChange = { nombre = it },
+                    value = usuario,
+                    onValueChange = { nuevoValor ->
+                        usuario = nuevoValor
+                        // Limpia el mensaje de error si se reescribe el usuario
+                        if (nuevoValor.isNotEmpty()) {
+                            registerViewModel.clearError()
+                        }
+                    },
                     label = {
                         Text(
                             buildAnnotatedString {
-                                append("Nombre")
-                                if (showErrors && nombre.isEmpty()) {
+                                append("Usuario")
+                                if (showErrors && correoElectronico.isEmpty()) {
                                     withStyle(style = androidx.compose.ui.text.SpanStyle(color = Color.Red)) {
                                         append(" *")
                                     }
@@ -115,40 +180,48 @@ fun Register(navController: NavController) {
                         )
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = textFieldColors()
+                    colors = textFieldColors(),
+                    trailingIcon = {
+                        if (usuario.isNotEmpty()) {
+                            if (errorMessage?.contains("usuario", ignoreCase = true) == true) {
+                                Icon(
+                                    imageVector = Icons.Default.Cancel,
+                                    contentDescription = "Usuario duplicado",
+                                    tint = Color.Red
+                                )
+                            }
+                        }
+                    }
                 )
-                Spacer(modifier = Modifier.height(8.dp))
+                // Mostrar mensaje de error debajo del campo si el usuario ya existe.
+                if (usuario.isNotEmpty() && errorMessage?.contains("usuario", ignoreCase = true) == true) {
+                    Text(
+                        text = errorMessage ?: "",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier
+                            .padding(start = 4.dp,top = 4.dp)
+                            .align(Alignment.Start)
 
-                // Campo para Apellidos con asterisco condicional
-                OutlinedTextField(
-                    value = apellidos,
-                    onValueChange = { apellidos = it },
-                    label = {
-                        Text(
-                            buildAnnotatedString {
-                                append("Nombre")
-                                if (showErrors && apellidos.isEmpty()) {
-                                    withStyle(style = androidx.compose.ui.text.SpanStyle(color = Color.Red)) {
-                                        append(" *")
-                                    }
-                                }
-                            },
-                            color = Color(0xFFDC993F)
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = textFieldColors()
-                )
-                Spacer(modifier = Modifier.height(8.dp))
+                    )
+                }
 
-                // Campo para Correo Electrónico con trailingIcon condicional
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Campo para Correo Electrónico
                 OutlinedTextField(
                     value = correoElectronico,
-                    onValueChange = { correoElectronico = it },
+                    onValueChange = { nuevoValor ->
+                        correoElectronico = nuevoValor
+                        // Si el usuario empieza a modificar el correo, se limpia el error.
+                        if (nuevoValor.isNotEmpty()) {
+                            registerViewModel.clearError()
+                        }
+                    },
                     label = {
                         Text(
                             buildAnnotatedString {
-                                append("Nombre")
+                                append("Correo Electrónico")
                                 if (showErrors && correoElectronico.isEmpty()) {
                                     withStyle(style = androidx.compose.ui.text.SpanStyle(color = Color.Red)) {
                                         append(" *")
@@ -164,107 +237,74 @@ fun Register(navController: NavController) {
                     trailingIcon = {
                         if (correoElectronico.isNotEmpty()) {
                             if (validarEmail(correoElectronico)) {
-                                Icon(
-                                    imageVector = Icons.Default.GppGood,
-                                    contentDescription = "Email válido",
-                                    tint = Color.Green
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Default.Cancel,
-                                    contentDescription = "Email inválido",
-                                    tint = Color.Red
-                                )
-                            }
-                        }
-                    }
-                )
-                // Mensaje de error debajo del campo si el email es inválido.
-                if (correoElectronico.isNotEmpty() && !validarEmail(correoElectronico)) {
-                    Text(
-                        text = "Correo electrónico no válido",
-                        color = Color.Red,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(start = 16.dp, top = 4.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Campo para Usuario con asterisco condicional y trailingIcon para duplicidad
-                OutlinedTextField(
-                    value = usuario,
-                    onValueChange = {
-                        usuario = it
-                        // Opcional: aquí podrías limpiar el error si se reescribe el campo.
-                    },
-                    label = {
-                        Text(
-                            buildAnnotatedString {
-                                append("Nombre")
-                                if (showErrors && usuario.isEmpty()) {
-                                    withStyle(style = androidx.compose.ui.text.SpanStyle(color = Color.Red)) {
-                                        append(" *")
-                                    }
+                                // Si el formato es correcto, se muestra un icono dependiendo del error recibido
+                                if (errorMessage?.contains("correo", ignoreCase = true) == true) {
+                                    Icon(
+                                        imageVector = Icons.Default.Cancel,
+                                        contentDescription = "Correo duplicado",
+                                        tint = Color.Red
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Default.GppGood,
+                                        contentDescription = "Correo válido",
+                                        tint = Color.Green
+                                    )
                                 }
-                            },
-                            color = Color(0xFFDC993F)
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = textFieldColors(),
-                    trailingIcon = {
-                        if (usuario.isNotEmpty()) {
-                            if (errorMessage?.contains("ya existe", ignoreCase = true) == true) {
-                                Icon(
-                                    imageVector = Icons.Default.Cancel,
-                                    contentDescription = "Usuario duplicado",
-                                    tint = Color.Red
-                                )
                             } else {
                                 Icon(
-                                    imageVector = Icons.Default.KeyboardArrowRight,
-                                    contentDescription = "Usuario disponible",
-                                    tint = Color.Green
+                                    imageVector = Icons.Default.Cancel,
+                                    contentDescription = "Correo inválido",
+                                    tint = Color.Red
                                 )
                             }
                         }
                     }
                 )
-                // Mensaje de error debajo del campo si el usuario ya existe.
-                if (usuario.isNotEmpty() && errorMessage?.contains("ya existe", ignoreCase = true) == true) {
-                    Text(
-                        text = errorMessage ?: "",
-                        color = Color.Red,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(start = 16.dp, top = 4.dp)
-                    )
+                // Mostrar mensaje de error debajo del campo de correo si el formato es inválido
+                // o si se recibe error por duplicidad (asumiendo que el mensaje contenga "correo")
+                if (correoElectronico.isNotEmpty()) {
+                    if (!validarEmail(correoElectronico)) {
+                        Text(
+                            text = "Correo electrónico no válido",
+                            color = Color.Red,
+                            fontSize = 12.sp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp, top = 4.dp)
+                        )
+                    } else if (errorMessage?.contains("correo", ignoreCase = true) == true) {
+                        Text(
+                            text = errorMessage ?: "",
+                            color = Color.Red,
+                            fontSize = 12.sp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp, top = 4.dp)
+                        )
+                    }
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
+                Spacer(modifier = Modifier.height(20.dp))
                 // Campo para Contraseña con asterisco condicional y funcionalidades adicionales.
                 PasswordTextField(
                     password = contraseña,
                     onPasswordChange = { contraseña = it },
                     onGeneratePassword = { contraseña = generateRandomPassword(12) },
-                    showError = showErrors && contraseña.isEmpty() // Pasamos el flag para indicar error.
+                    showError = showErrors && contraseña.isEmpty()
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(40.dp))
 
-                // Botón de Registro: valida que ninguno de los campos esté vacío.
+                // Botón de Registro
                 Button(
                     onClick = {
-                        // Si alguno de los campos está vacío, activamos showErrors.
+                        // Si algún campo está vacío o el correo es inválido, activamos showErrors.
                         if (nombre.isEmpty() || apellidos.isEmpty() ||
-                            usuario.isEmpty() || correoElectronico.isEmpty() || contraseña.isEmpty()
+                            usuario.isEmpty() || correoElectronico.isEmpty() || contraseña.isEmpty() ||
+                            !validarEmail(correoElectronico)
                         ) {
                             showErrors = true
-                        } else if (!validarEmail(correoElectronico)) {
-                            showErrors = true
                         } else {
-                            // Si todos los campos están llenos y el email es válido, se procede al registro
                             showErrors = false
                             val user = UserRegister(
                                 nombre = nombre,
@@ -276,11 +316,25 @@ fun Register(navController: NavController) {
                             registerViewModel.registerUser(user)
                         }
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFF6B459),
+                        contentColor = Color(0xFF886742)
+                    )
                 ) {
                     Text(text = "Registrarse", style = MaterialTheme.typography.bodyLarge)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
+
+                // Mensaje de error global debajo del botón si hay campos obligatorios vacíos.
+                if (showErrors && (nombre.isEmpty() || apellidos.isEmpty() || usuario.isEmpty() || correoElectronico.isEmpty() || contraseña.isEmpty())) {
+                    Text(
+                        text = "Campos obligatorios",
+                        color = Color.Red,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
             }
         }
     }
@@ -310,7 +364,7 @@ fun PasswordTextField(
         label = {
             Text(
                 buildAnnotatedString {
-                    append("Nombre")
+                    append("Contraseña")
                     if (showError && password.isEmpty()) {
                         withStyle(style = androidx.compose.ui.text.SpanStyle(color = Color.Red)) {
                             append(" *")
