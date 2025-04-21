@@ -48,7 +48,9 @@ fun Login(navController: NavController) {
     LaunchedEffect(loginResponse) {
         if (loginResponse == "loginexistoso") {
             delay(300)
-            navController.navigate(AppScreens.Home.route)
+            navController.navigate(AppScreens.Home.route) {
+                popUpTo(AppScreens.Login.route) { inclusive = true }
+            }
         }
     }
 
