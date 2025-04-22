@@ -1,6 +1,7 @@
 package com.example.sistemagestionbiblioteca.network
 
 import com.example.sistemagestionbiblioteca.data.books.Book
+import com.example.sistemagestionbiblioteca.data.books.BookCreateRequest
 import com.example.sistemagestionbiblioteca.data.books.BookResponse
 import com.example.sistemagestionbiblioteca.data.books.BookUpdateRequest
 import com.example.sistemagestionbiblioteca.data.categories.Category
@@ -71,7 +72,7 @@ interface ApiService {
 
     @Headers("Content-Type: application/json")
     @POST("librosController.php")
-    fun createBook(@Body book: Book): Call<BookResponse>
+    fun createBook(@Body body: BookCreateRequest): Call<BookResponse>
 
     @PUT("librosController.php")
     fun updateBook(

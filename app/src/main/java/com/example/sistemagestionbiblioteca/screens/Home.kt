@@ -1,9 +1,11 @@
 package com.example.sistemagestionbiblioteca.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -41,29 +43,52 @@ import com.example.sistemagestionbiblioteca.features.category.CategoryViewModel
 import com.example.sistemagestionbiblioteca.navigation.BottomBar
 import com.example.sistemagestionbiblioteca.navigation.CustomTopBar
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import coil.compose.rememberAsyncImagePainter
+import com.example.sistemagestionbiblioteca.data.books.BookCreateRequest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Home(navController: NavController,currentUserId: Int) {
+
+    val context = LocalContext.current
     val focusManager = LocalFocusManager.current
+    val scroll = rememberScrollState()
 
     // ViewModels
     val catVm: CategoryViewModel = viewModel()
     val categories by catVm.categories.observeAsState(emptyList())
     val catError  by catVm.error.observeAsState()
 
+    var showCreateBookDialog by remember { mutableStateOf(false) }
+
     val bookVm: BookViewModel = viewModel()
     val books by bookVm.books.observeAsState(emptyList())
-    val bookError by bookVm.statusMessage.observeAsState()
+
     var showEditBookDialog by remember { mutableStateOf(false) }
     var bookToEdit        by remember { mutableStateOf<Book?>(null) }
     // Estados para creación de categoría
+
     var showCreateCat by remember { mutableStateOf(false) }
     var newCatName   by remember { mutableStateOf("") }
     var newCatDesc   by remember { mutableStateOf("") }
 
+    val statusMsg by bookVm.statusMessage.observeAsState()
+
+    // 1) Toast cada vez que cambie statusMsg
+    LaunchedEffect(statusMsg) {
+        statusMsg?.let { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            bookVm.clearStatusMessage()
+        }
+    }
     // Carga inicial
     LaunchedEffect(Unit) {
+
         catVm.fetchCategories()
         bookVm.fetchBooks()
     }
@@ -73,10 +98,11 @@ fun Home(navController: NavController,currentUserId: Int) {
         bottomBar = { BottomBar(navController, currentUserId) },
         containerColor = Color(0xFFF6E6CA)
     ) { innerPadding ->
-        Box(
+        Column(
             Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
+                .verticalScroll(scroll)       // <-- esto habilita el scroll
                 .background(
                     Brush.radialGradient(
                         listOf(Color(0xFFF6E6CA), Color(0xFFF5EADA)),
@@ -109,7 +135,7 @@ fun Home(navController: NavController,currentUserId: Int) {
                             "Categorías",
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFFF8B75E)
+                            color = Color(0xFF1D3A58)
                         )
                         IconButton(
                             onClick = { showCreateCat = true },
@@ -122,7 +148,7 @@ fun Home(navController: NavController,currentUserId: Int) {
                         }
                     }
                     Divider(
-                        color = Color(0xFFF8B75E),
+                        color = Color(0xFF1D3A58),
                         thickness = 2.dp,
                         modifier = Modifier
                             .fillMaxWidth(0.46f)
@@ -195,21 +221,60 @@ fun Home(navController: NavController,currentUserId: Int) {
 
                     // --- NOVEDEDADES (LIBROS) ---
                     Spacer(Modifier.height(24.dp))
-                    Text(
-                        "Novedades",
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF886742)
-                    )
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "Novedades",
+                            fontSize = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1D3A58)
+                        )
+                        IconButton(
+                            onClick = { showCreateBookDialog = true },
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(Color(0xFFF8B75E), CircleShape)
+                                .clip(CircleShape)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = "Crear libro",
+                                tint = Color.White
+                            )
+                        }
+                    }
                     Divider(
-                        color = Color.Gray,
+                        color = Color(0xFF1D3A58),
                         thickness = 1.dp,
                         modifier = Modifier
-                            .fillMaxWidth(0.5f)
+                            .fillMaxWidth(0.46f)
                             .padding(vertical = 8.dp)
                     )
+                    if (showCreateBookDialog) {
+                        BookDialog(
+                            initial = null,
+                            onConfirm = { b ->
+                                val req = BookCreateRequest(
+                                    titulo = b.Título,
+                                    autor = b.Autor,
+                                    año = b.Año,
+                                    sinopsis = b.Sinopsis,
+                                    categoria = b.Categoría_ID,
+                                    estado = b.Estado,
+                                    fecha = b.Fecha,
+                                    estanteria = b.Estanteria_ID
+                                )
+                                bookVm.createBook(req)
+                                showCreateBookDialog = false
+                            },
+                            onDismiss = { showCreateBookDialog = false }
+                        )
+                    }
                     LazyRow {
-                        items(books) { book ->
+                        items(books.reversed()) { book ->
                             BookCard(
                                 book = book,
                                 onDelete = { bookVm.deleteBook(book.ID) },
@@ -232,10 +297,7 @@ fun Home(navController: NavController,currentUserId: Int) {
                             onDismiss = { showEditBookDialog = false; bookToEdit = null }
                         )
                     }
-                    bookError?.let {
-                        Spacer(Modifier.height(8.dp))
-                        Text(it, color = MaterialTheme.colorScheme.error)
-                    }
+
                 }
             }
         }
@@ -261,7 +323,7 @@ private fun CategoryCard(
         shape = RoundedCornerShape(12.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Text(category.nombre)
+            Text(category.nombre, fontWeight = FontWeight.ExtraBold, fontFamily = FontFamily.Serif)
             Spacer(Modifier.height(4.dp))
             Text(category.descripcion.orEmpty())
             Spacer(Modifier.height(8.dp))
@@ -341,11 +403,18 @@ private fun CategoryCard(
 private fun BookCard(book: Book, onDelete: ()->Unit, onEdit: ()->Unit) {
     Card(
         shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.width(200.dp)
+        modifier = Modifier.width(250.dp).height(300.dp)
     ) {
+        Image(
+            painter = rememberAsyncImagePainter(R.drawable.librocerrado),
+            contentDescription = "Fondo del libro ${book.Título}",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .alpha(0.5f) // Opcional: hacerla translúcida para que el contenido sea más visible
+        )
         Column(Modifier.padding(12.dp)) {
-            Text(book.Título, fontWeight = FontWeight.Bold)
-            Text("Autor: ${book.Autor}")
+            Text(book.Título, fontWeight = FontWeight.ExtraBold, fontFamily = FontFamily.Serif)
+            Text(book.Autor)
             Spacer(Modifier.height(8.dp))
             Row(
                 Modifier.fillMaxWidth(),

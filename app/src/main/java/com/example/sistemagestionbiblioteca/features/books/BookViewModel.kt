@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.sistemagestionbiblioteca.data.books.Book
+import com.example.sistemagestionbiblioteca.data.books.BookCreateRequest
 import com.example.sistemagestionbiblioteca.data.books.BookResponse
 import com.example.sistemagestionbiblioteca.data.books.BookUpdateRequest
 import com.example.sistemagestionbiblioteca.network.ApiService
@@ -17,8 +18,8 @@ class BookViewModel : ViewModel() {
     private val _books = MutableLiveData<List<Book>>()
     val books: LiveData<List<Book>> = _books
 
-    private val _statusMessage = MutableLiveData<String>()
-    val statusMessage: LiveData<String> = _statusMessage
+    private val _statusMessage = MutableLiveData<String?>()
+    val statusMessage: LiveData<String?> = _statusMessage
 
     fun fetchBooks() {
         ApiService.getInstance().getBooks().enqueue(object: Callback<List<Book>> {
@@ -32,13 +33,12 @@ class BookViewModel : ViewModel() {
         })
     }
 
-    fun createBook(book: Book) {
-        ApiService.getInstance().createBook(book)
+    fun createBook(r: BookCreateRequest) {
+        ApiService.getInstance().createBook(r)
             .enqueue(object: Callback<BookResponse> {
                 override fun onResponse(c: Call<BookResponse>, r: Response<BookResponse>) {
-                    if (r.isSuccessful && r.body()!=null) {
-                        val resp = r.body()!!
-                        _statusMessage.postValue("${resp.message} (ID=${resp.id})")
+                    if (r.isSuccessful && r.body() != null) {
+                        _statusMessage.postValue("${r.body()!!.message} (ID=${r.body()!!.id})")
                         fetchBooks()
                     } else {
                         _statusMessage.postValue("Error ${r.code()} al crear")
@@ -97,5 +97,7 @@ class BookViewModel : ViewModel() {
                 }
             })
     }
-
+    fun clearStatusMessage() {
+        _statusMessage.value = null
+    }
 }
