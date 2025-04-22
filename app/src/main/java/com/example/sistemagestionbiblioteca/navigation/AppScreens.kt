@@ -4,17 +4,17 @@ sealed class AppScreens(val route:String) {
 
     object Login : AppScreens("login")
 
-
-    object Home : AppScreens("home")
-
-
     object Register : AppScreens("register")
 
+    object Home   : AppScreens("home/{userId}") {
+        fun createRoute(userId: Int) = "home/$userId"
+    }
 
-    object History : AppScreens("History")
-
-
-    object Shelves : AppScreens("shelves")
-
+    object History : AppScreens("history/{userId}") {
+        fun createRoute(userId: Int) = "history/$userId"
+    }
+    object Shelves : AppScreens("shelves/{userId}") {
+        fun createRoute(userId: Int) = "shelves/$userId"
+    }
 
 }

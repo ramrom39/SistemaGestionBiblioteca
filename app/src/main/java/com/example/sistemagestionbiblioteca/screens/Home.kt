@@ -34,86 +34,93 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.sistemagestionbiblioteca.R
+import com.example.sistemagestionbiblioteca.data.books.Book
 import com.example.sistemagestionbiblioteca.data.categories.Category
+import com.example.sistemagestionbiblioteca.features.books.BookViewModel
 import com.example.sistemagestionbiblioteca.features.category.CategoryViewModel
 import com.example.sistemagestionbiblioteca.navigation.BottomBar
 import com.example.sistemagestionbiblioteca.navigation.CustomTopBar
+import androidx.compose.foundation.lazy.items
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Home(navController: NavController) {
+fun Home(navController: NavController,currentUserId: Int) {
     val focusManager = LocalFocusManager.current
-    val gradientBrush = Brush.radialGradient(
-        colors = listOf(Color(0xFFF6E6CA), Color(0xFFF5EADA)),
-        center = Offset(0.5f, 0.5f),
-        radius = 2000f
-    )
 
-    val vm: CategoryViewModel = viewModel()
-    val categories by vm.categories.observeAsState(emptyList())
-    val error by vm.error.observeAsState()
+    // ViewModels
+    val catVm: CategoryViewModel = viewModel()
+    val categories by catVm.categories.observeAsState(emptyList())
+    val catError  by catVm.error.observeAsState()
 
-    var showCreateDialog by remember { mutableStateOf(false) }
-    var newCatName by remember { mutableStateOf("") }
-    var newCatDesc by remember { mutableStateOf("") }
+    val bookVm: BookViewModel = viewModel()
+    val books by bookVm.books.observeAsState(emptyList())
+    val bookError by bookVm.statusMessage.observeAsState()
+    var showEditBookDialog by remember { mutableStateOf(false) }
+    var bookToEdit        by remember { mutableStateOf<Book?>(null) }
+    // Estados para creación de categoría
+    var showCreateCat by remember { mutableStateOf(false) }
+    var newCatName   by remember { mutableStateOf("") }
+    var newCatDesc   by remember { mutableStateOf("") }
 
+    // Carga inicial
     LaunchedEffect(Unit) {
-        vm.fetchCategories()
+        catVm.fetchCategories()
+        bookVm.fetchBooks()
     }
 
     Scaffold(
-        topBar = { CustomTopBar(navController) },
-        bottomBar = { BottomBar(navController) },
+        topBar        = { CustomTopBar(navController) },
+        bottomBar = { BottomBar(navController, currentUserId) },
         containerColor = Color(0xFFF6E6CA)
     ) { innerPadding ->
         Box(
             Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .background(gradientBrush)
-                .pointerInput(Unit) { detectTapGestures { focusManager.clearFocus() } }
+                .background(
+                    Brush.radialGradient(
+                        listOf(Color(0xFFF6E6CA), Color(0xFFF5EADA)),
+                        center = Offset(0.5f, 0.5f), radius = 2000f
+                    )
+                )
+                .pointerInput(Unit){ detectTapGestures { focusManager.clearFocus() } }
         ) {
-            Column() {
-                Spacer(modifier = Modifier.height(25.dp))
+            Column {
+                Spacer(Modifier.height(25.dp))
                 Image(
-                    painter = painterResource(id = R.drawable.hero),
-                    contentDescription = "Banner categorías",
+                    painter = painterResource(R.drawable.hero),
+                    contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(220.dp)
                         .offset(x = (-12).dp)
-                        .align(Alignment.CenterHorizontally)
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                Column(modifier = Modifier.padding(16.dp)) {
+                Spacer(Modifier.height(16.dp))
+
+                Column(Modifier.padding(16.dp)) {
+                    // --- HEADER CATEGORÍAS ---
                     Row(
+                        Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Categorías",
+                            "Categorías",
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFF8B75E)
                         )
                         IconButton(
-                            onClick = { showCreateDialog = true },
+                            onClick = { showCreateCat = true },
                             modifier = Modifier
                                 .size(40.dp)
                                 .background(Color(0xFFF8B75E), CircleShape)
                                 .clip(CircleShape)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = "Crear categoría",
-                                tint = Color.White
-                            )
+                            Icon(Icons.Default.Add, contentDescription = "Crear categoría", tint = Color.White)
                         }
                     }
-
-                    // Separador negro
                     Divider(
                         color = Color(0xFFF8B75E),
                         thickness = 2.dp,
@@ -122,10 +129,10 @@ fun Home(navController: NavController) {
                             .padding(vertical = 8.dp)
                     )
 
-                    // Diálogo de creación
-                    if (showCreateDialog) {
+                    // DIÁLOGO CREAR CATEGORÍA
+                    if (showCreateCat) {
                         AlertDialog(
-                            onDismissRequest = { showCreateDialog = false },
+                            onDismissRequest = { showCreateCat = false },
                             title = { Text("Crear categoría") },
                             text = {
                                 Column {
@@ -146,61 +153,95 @@ fun Home(navController: NavController) {
                             },
                             confirmButton = {
                                 TextButton(onClick = {
-                                    vm.createCategory(
-                                        nombre = newCatName,
+                                    catVm.createCategory(
+                                        nombre      = newCatName,
                                         descripcion = newCatDesc.ifBlank { null }
                                     )
                                     newCatName = ""
                                     newCatDesc = ""
-                                    showCreateDialog = false
+                                    showCreateCat = false
                                 }) { Text("OK") }
                             },
                             dismissButton = {
-                                TextButton(onClick = {
-                                    showCreateDialog = false
-                                }) { Text("Cancelar") }
+                                TextButton(onClick = { showCreateCat = false }) { Text("Cancelar") }
                             }
                         )
                         Spacer(Modifier.height(16.dp))
                     }
 
-                    Spacer(Modifier.height(8.dp))
-
-                    // Colores de las tarjetas
-                    val cardColors = listOf(
-                        Color(0xFFB3E5FC).copy(alpha = 0.5f),
-                        Color(0xFFC8E6C9).copy(alpha = 0.5f),
-                        Color(0xFFFFF9C4).copy(alpha = 0.5f),
-                        Color(0xFFFFCCBC).copy(alpha = 0.5f),
-                        Color(0xFFD1C4E9).copy(alpha = 0.5f)
-                    )
-
-                    // Carrusel de categorías con colores
+                    // --- LAZYROW CATEGORÍAS ---
                     LazyRow {
-                        itemsIndexed(categories) { index, cat ->
-                            val bgColor = cardColors[index % cardColors.size]
+                        itemsIndexed(categories) { idx, cat ->
+                            val colors = listOf(
+                                Color(0xFFB3E5FC),
+                                Color(0xFFC8E6C9),
+                                Color(0xFFFFF9C4),
+                                Color(0xFFFFCCBC),
+                                Color(0xFFD1C4E9)
+                            ).map { it.copy(alpha = 0.5f) }
                             CategoryCard(
                                 category = cat,
-                                backgroundColor = bgColor,
-                                onDelete = { vm.deleteCategory(cat.id) },
-                                onUpdate = { updatedName, updatedDesc ->
-                                    vm.updateCategory(cat.id, updatedName, updatedDesc)
-                                }
+                                backgroundColor = colors[idx % colors.size],
+                                onDelete = { catVm.deleteCategory(cat.id) },
+                                onUpdate = { n, d -> catVm.updateCategory(cat.id, n, d) }
+                            )
+                            Spacer(Modifier.width(12.dp))
+                        }
+                    }
+                    catError?.let {
+                        Spacer(Modifier.height(8.dp))
+                        Text(it, color = Color.Red)
+                    }
+
+                    // --- NOVEDEDADES (LIBROS) ---
+                    Spacer(Modifier.height(24.dp))
+                    Text(
+                        "Novedades",
+                        fontSize = 28.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF886742)
+                    )
+                    Divider(
+                        color = Color.Gray,
+                        thickness = 1.dp,
+                        modifier = Modifier
+                            .fillMaxWidth(0.5f)
+                            .padding(vertical = 8.dp)
+                    )
+                    LazyRow {
+                        items(books) { book ->
+                            BookCard(
+                                book = book,
+                                onDelete = { bookVm.deleteBook(book.ID) },
+                                onEdit   = {
+                                    bookToEdit = book
+                                    showEditBookDialog = true }
                             )
                             Spacer(Modifier.width(12.dp))
                         }
                     }
 
-                    // Mensaje de error
-                    error?.let {
-                        Spacer(Modifier.height(16.dp))
-                        Text(text = it, color = Color.Red)
+                    if (showEditBookDialog && bookToEdit != null) {
+                        BookDialog(
+                            initial = bookToEdit!!,
+                            onConfirm = { updatedBook ->
+                                bookVm.updateBook(updatedBook, currentUserId)
+                                showEditBookDialog = false
+                                bookToEdit = null
+                            },
+                            onDismiss = { showEditBookDialog = false; bookToEdit = null }
+                        )
+                    }
+                    bookError?.let {
+                        Spacer(Modifier.height(8.dp))
+                        Text(it, color = MaterialTheme.colorScheme.error)
                     }
                 }
             }
         }
     }
 }
+
 
 @Composable
 private fun CategoryCard(
@@ -292,4 +333,91 @@ private fun CategoryCard(
             }
         )
     }
+}
+
+
+
+@Composable
+private fun BookCard(book: Book, onDelete: ()->Unit, onEdit: ()->Unit) {
+    Card(
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.width(200.dp)
+    ) {
+        Column(Modifier.padding(12.dp)) {
+            Text(book.Título, fontWeight = FontWeight.Bold)
+            Text("Autor: ${book.Autor}")
+            Spacer(Modifier.height(8.dp))
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier.background(Color.Red.copy(alpha = 0.2f), CircleShape)
+                ) {
+                    Icon(Icons.Default.Delete, contentDescription = "Borrar", tint = Color.Red)
+                }
+                Spacer(Modifier.width(8.dp))
+                IconButton(
+                    onClick = onEdit,
+                    modifier = Modifier.background(Color.Blue.copy(alpha = 0.2f), CircleShape)
+                ) {
+                    Icon(Icons.Default.EditNote, "Editar", tint = Color.Blue)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun BookDialog(
+    initial: Book?,
+    onConfirm: (Book)->Unit,
+    onDismiss: ()->Unit
+) {
+    var titulo      by remember { mutableStateOf(initial?.Título.orEmpty()) }
+    var autor       by remember { mutableStateOf(initial?.Autor.orEmpty()) }
+    var año         by remember { mutableStateOf(initial?.Año?.toString().orEmpty()) }
+    var sinopsis    by remember { mutableStateOf(initial?.Sinopsis.orEmpty()) }
+    var categoria   by remember { mutableStateOf(initial?.Categoría_ID?.toString().orEmpty()) }
+    var estado      by remember { mutableStateOf(initial?.Estado.orEmpty()) }
+    var fecha       by remember { mutableStateOf(initial?.Fecha.orEmpty()) }
+    var estanteria  by remember { mutableStateOf(initial?.Estanteria_ID?.toString().orEmpty()) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (initial==null) "Crear libro" else "Editar libro") },
+        text = {
+            Column {
+                OutlinedTextField(titulo,   { titulo = it   }, label = { Text("Título") })
+                OutlinedTextField(autor,    { autor = it    }, label = { Text("Autor") })
+                OutlinedTextField(año,      { año = it      }, label = { Text("Año") })
+                OutlinedTextField(sinopsis, { sinopsis = it }, label = { Text("Sinopsis") })
+                OutlinedTextField(categoria,{ categoria = it}, label = { Text("Categoría_ID") })
+                OutlinedTextField(estado,   { estado = it   }, label = { Text("Estado") })
+                OutlinedTextField(fecha,    { fecha = it    }, label = { Text("Fecha") })
+                OutlinedTextField(estanteria,{ estanteria = it}, label = { Text("Estanteria_ID") })
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                onConfirm(
+                    Book(
+                        ID = initial?.ID ?: 0,
+                        Título       = titulo,
+                        Autor        = autor,
+                        Año          = año.toIntOrNull() ?: 0,
+                        Sinopsis     = sinopsis,
+                        Categoría_ID = categoria.toIntOrNull() ?: 0,
+                        Estado       = estado,
+                        Fecha        = fecha,
+                        Estanteria_ID= estanteria.toIntOrNull() ?: 0
+                    )
+                )
+            }) { Text("OK") }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancelar") }
+        }
+    )
 }

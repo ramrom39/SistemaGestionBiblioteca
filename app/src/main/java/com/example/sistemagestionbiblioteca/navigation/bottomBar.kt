@@ -32,7 +32,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
-fun BottomBar(navController: NavController) {
+fun BottomBar(navController: NavController,currentUserId: Int) {
     // Observa los cambios en la navegación.
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -101,7 +101,7 @@ fun BottomBar(navController: NavController) {
                 selected = currentRoute == AppScreens.Home.route,
                 onClick = {
                     if (currentRoute != AppScreens.Home.route) {
-                        navController.navigate(AppScreens.Home.route)
+                        navController.navigate(AppScreens.Home.createRoute(currentUserId))
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
@@ -137,7 +137,7 @@ fun BottomBar(navController: NavController) {
                 selected = currentRoute == AppScreens.History.route,
                 onClick = {
                     if (currentRoute != AppScreens.History.route) {
-                        navController.navigate(AppScreens.History.route)
+                        navController.navigate(AppScreens.History.createRoute(currentUserId))
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(
@@ -173,7 +173,7 @@ fun BottomBar(navController: NavController) {
                 selected = currentRoute == AppScreens.Shelves.route,
                 onClick = {
                     if (currentRoute != AppScreens.Shelves.route) {
-                        navController.navigate(AppScreens.Shelves.route)
+                        navController.navigate(AppScreens.Shelves.createRoute(currentUserId))
                     }
                 },
                 colors = NavigationBarItemDefaults.colors(

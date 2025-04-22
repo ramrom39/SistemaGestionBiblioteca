@@ -1,5 +1,8 @@
 package com.example.sistemagestionbiblioteca.network
 
+import com.example.sistemagestionbiblioteca.data.books.Book
+import com.example.sistemagestionbiblioteca.data.books.BookResponse
+import com.example.sistemagestionbiblioteca.data.books.BookUpdateRequest
 import com.example.sistemagestionbiblioteca.data.categories.Category
 
 import com.example.sistemagestionbiblioteca.data.categories.CategoryResponse
@@ -12,6 +15,7 @@ import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.HTTP
 import retrofit2.http.Headers
@@ -40,7 +44,6 @@ interface ApiService {
     }
 
     @Headers("Content-Type: application/json")
-    // Usamos el objeto User para enviar la solicitud y esperamos un RegisterResponse como respuesta.
     @POST("registroController.php")
     fun registerUser(@Body user: UserRegister): Call<RegisterResponse>
 
@@ -50,7 +53,7 @@ interface ApiService {
     @GET("categoriasController.php")
     fun getCategories(): Call<List<Category>>
 
-    @HTTP(method = "DELETE", path = "categoriasController.php", hasBody = false)
+    @DELETE("categoriasController.php")
     fun deleteCategory(@Query("id") id: Int): Call<Void>
 
     @PUT("categoriasController.php")
@@ -62,5 +65,23 @@ interface ApiService {
     @Headers("Content-Type: application/json")
     @POST("categoriasController.php")
     fun createCategory(@Body request: CategoryResponse): Call<String>
+
+    @GET("librosController.php")
+    fun getBooks(): Call<List<Book>>
+
+    @Headers("Content-Type: application/json")
+    @POST("librosController.php")
+    fun createBook(@Body book: Book): Call<BookResponse>
+
+    @PUT("librosController.php")
+    fun updateBook(
+        @Query("id") id: Int,
+        @Body request: BookUpdateRequest
+    ): Call<BookResponse>
+
+    @DELETE("librosController.php")
+    fun deleteBook(@Query("id") id: Int): Call<BookResponse>
+
+
 }
 

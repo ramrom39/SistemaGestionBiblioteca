@@ -30,6 +30,20 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun Login(navController: NavController) {
+    val loginVm: LoginViewModel = viewModel()
+    val loginMsg by loginVm.loginResponse.observeAsState()
+    val userId by loginVm.userId.observeAsState()
+
+    // Este LaunchedEffect se disparará en cuanto cambie loginMsg o userId
+    LaunchedEffect(loginMsg, userId) {
+        if (loginMsg == "loginexistoso" && userId != null) {
+            // Navegamos a Home pasando el userId como argumento
+            navController.navigate("home/$userId") {
+                popUpTo(AppScreens.Login.route) { inclusive = true }
+            }
+        }
+    }
+
     val focusManager = LocalFocusManager.current
 
     // Campos para email y contraseña
@@ -44,12 +58,12 @@ fun Login(navController: NavController) {
     val loginResponse by loginViewModel.loginResponse.observeAsState()
     val errorMessage by loginViewModel.errorMessage.observeAsState()
 
-    // Navega a Home si el login es exitoso
-    LaunchedEffect(loginResponse) {
-        if (loginResponse == "loginexistoso") {
-            delay(300)
-            navController.navigate(AppScreens.Home.route) {
-                popUpTo(AppScreens.Login.route) { inclusive = true }
+    LaunchedEffect(loginMsg, userId) {
+        if (loginMsg == "loginexistoso") {
+            userId?.let { uid ->
+                navController.navigate(AppScreens.Home.createRoute(uid)) {
+                    popUpTo(AppScreens.Login.route) { inclusive = true }
+                }
             }
         }
     }

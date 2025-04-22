@@ -16,9 +16,9 @@ import androidx.navigation.NavController
 import com.example.sistemagestionbiblioteca.navigation.BottomBar
 
 @Composable
-fun History(navController: NavController) {
+fun History(navController: NavController,currentUserId: Int) {
     Scaffold(
-        bottomBar = { BottomBar(navController) },
+        bottomBar = { BottomBar(navController,currentUserId) },
         containerColor = Color(0xFFFFFFFF)
     ) { innerPadding ->
         Box(

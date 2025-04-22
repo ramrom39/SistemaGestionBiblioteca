@@ -37,7 +37,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.draw.drawBehind
-
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -55,14 +56,34 @@ fun AppNavigation() {
         composable(AppScreens.Register.route) {
             Register(navController)
         }
-        composable(AppScreens.Home.route) {
-            Home(navController)
+        // Home ya estaba parametrizado:
+        composable(
+            route = AppScreens.Home.route,               // "home/{userId}"
+            arguments = listOf(navArgument("userId") {
+                type = NavType.IntType
+            })
+        ) { back ->
+            Home(navController, back.arguments!!.getInt("userId"))
         }
-        composable(AppScreens.History.route) {
-            History(navController)
+
+        // History parametrizado
+        composable(
+            route = "history/{userId}",
+            arguments = listOf(navArgument("userId") {
+                type = NavType.IntType
+            })
+        ) { back ->
+            History(navController, back.arguments!!.getInt("userId"))
         }
-        composable(AppScreens.Shelves.route) {
-            Shelves(navController)
+
+        // Shelves parametrizado
+        composable(
+            route = "shelves/{userId}",
+            arguments = listOf(navArgument("userId") {
+                type = NavType.IntType
+            })
+        ) { back ->
+            Shelves(navController, back.arguments!!.getInt("userId"))
         }
     }
-    }
+}
