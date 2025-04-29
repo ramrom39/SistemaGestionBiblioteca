@@ -7,11 +7,14 @@ import com.example.sistemagestionbiblioteca.data.books.BookUpdateRequest
 import com.example.sistemagestionbiblioteca.data.categories.Category
 
 import com.example.sistemagestionbiblioteca.data.categories.CategoryResponse
+import com.example.sistemagestionbiblioteca.data.history.History
 import com.example.sistemagestionbiblioteca.data.users.LoginResponse
 import com.example.sistemagestionbiblioteca.data.users.RegisterResponse
+import com.example.sistemagestionbiblioteca.data.users.User
 
 import com.example.sistemagestionbiblioteca.data.users.UserRegister
 import com.example.sistemagestionbiblioteca.data.users.UserLogin
+import com.example.sistemagestionbiblioteca.data.users.UserNameResponse
 import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -44,6 +47,9 @@ interface ApiService {
         }
     }
 
+    @GET("usuariosController.php")
+    suspend fun getUserById(@Query("id") id: Int): UserNameResponse
+
     @Headers("Content-Type: application/json")
     @POST("registroController.php")
     fun registerUser(@Body user: UserRegister): Call<RegisterResponse>
@@ -55,7 +61,7 @@ interface ApiService {
     fun getCategories(): Call<List<Category>>
 
     @DELETE("categoriasController.php")
-    fun deleteCategory(@Query("id") id: Int): Call<Void>
+    fun deleteCategory(@Query("id") id: Int): Call<String>
 
     @PUT("categoriasController.php")
     fun updateCategory(
@@ -83,6 +89,9 @@ interface ApiService {
     @DELETE("librosController.php")
     fun deleteBook(@Query("id") id: Int): Call<BookResponse>
 
+
+    @GET("historialController.php")
+    suspend fun getHistoryByBookId(@Query("libroId") bookId: Int): List<History>
 
 }
 

@@ -1,5 +1,6 @@
 package com.example.sistemagestionbiblioteca.screens
 
+import android.support.annotation.DrawableRes
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -46,8 +47,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextOverflow
 import coil.compose.rememberAsyncImagePainter
 import com.example.sistemagestionbiblioteca.data.books.BookCreateRequest
 
@@ -58,7 +61,7 @@ fun Home(navController: NavController,currentUserId: Int) {
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val scroll = rememberScrollState()
-
+    val categoryBgRes = R.drawable.fotocategoria
     // ViewModels
     val catVm: CategoryViewModel = viewModel()
     val categories by catVm.categories.observeAsState(emptyList())
@@ -77,9 +80,21 @@ fun Home(navController: NavController,currentUserId: Int) {
     var newCatName   by remember { mutableStateOf("") }
     var newCatDesc   by remember { mutableStateOf("") }
 
+    val isCreateCatEnabled by remember(newCatName, newCatDesc) {
+        derivedStateOf { newCatName.isNotBlank() && newCatDesc.isNotBlank() }
+    }
     val statusMsg by bookVm.statusMessage.observeAsState()
 
-    // 1) Toast cada vez que cambie statusMsg
+    val catStatusMsg by catVm.statusMessage.observeAsState()
+
+    // Toast para categoría
+    LaunchedEffect(catStatusMsg) {
+        catStatusMsg?.let { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            catVm.clearStatusMessage()
+        }
+    }
+    // Toast cada vez que cambie statusMsg
     LaunchedEffect(statusMsg) {
         statusMsg?.let { msg ->
             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
@@ -112,7 +127,7 @@ fun Home(navController: NavController,currentUserId: Int) {
                 .pointerInput(Unit){ detectTapGestures { focusManager.clearFocus() } }
         ) {
             Column {
-                Spacer(Modifier.height(25.dp))
+                Spacer(Modifier.height(40.dp))
                 Image(
                     painter = painterResource(R.drawable.hero),
                     contentDescription = null,
@@ -122,7 +137,7 @@ fun Home(navController: NavController,currentUserId: Int) {
                         .height(220.dp)
                         .offset(x = (-12).dp)
                 )
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(40.dp))
 
                 Column(Modifier.padding(16.dp)) {
                     // --- HEADER CATEGORÍAS ---
@@ -133,7 +148,7 @@ fun Home(navController: NavController,currentUserId: Int) {
                     ) {
                         Text(
                             "Categorías",
-                            fontSize = 28.sp,
+                            fontSize = 40.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1D3A58)
                         )
@@ -151,10 +166,10 @@ fun Home(navController: NavController,currentUserId: Int) {
                         color = Color(0xFF1D3A58),
                         thickness = 2.dp,
                         modifier = Modifier
-                            .fillMaxWidth(0.46f)
+                            .fillMaxWidth(0.60f)
                             .padding(vertical = 8.dp)
                     )
-
+                    Spacer(Modifier.height(30.dp))
                     // DIÁLOGO CREAR CATEGORÍA
                     if (showCreateCat) {
                         AlertDialog(
@@ -178,47 +193,66 @@ fun Home(navController: NavController,currentUserId: Int) {
                                 }
                             },
                             confirmButton = {
-                                TextButton(onClick = {
-                                    catVm.createCategory(
-                                        nombre      = newCatName,
-                                        descripcion = newCatDesc.ifBlank { null }
-                                    )
-                                    newCatName = ""
-                                    newCatDesc = ""
-                                    showCreateCat = false
-                                }) { Text("OK") }
+                                TextButton(
+                                    onClick = {
+                                        catVm.createCategory(
+                                            nombre      = newCatName,
+                                            descripcion = newCatDesc.ifBlank { null }
+                                        )
+                                        newCatName = ""
+                                        newCatDesc = ""
+                                        showCreateCat = false
+                                    },
+                                    enabled = isCreateCatEnabled        // <— aquí
+                                ) {
+                                    Text("OK")
+                                }
                             },
                             dismissButton = {
                                 TextButton(onClick = { showCreateCat = false }) { Text("Cancelar") }
                             }
                         )
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(25.dp))
                     }
 
                     // --- LAZYROW CATEGORÍAS ---
-                    LazyRow {
-                        itemsIndexed(categories) { idx, cat ->
-                            val colors = listOf(
-                                Color(0xFFB3E5FC),
-                                Color(0xFFC8E6C9),
-                                Color(0xFFFFF9C4),
-                                Color(0xFFFFCCBC),
-                                Color(0xFFD1C4E9)
-                            ).map { it.copy(alpha = 0.5f) }
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(
+                            items = categories,
+                            key = { it.id }    // ← key única por categoría
+                        ) { cat ->
                             CategoryCard(
-                                category = cat,
-                                backgroundColor = colors[idx % colors.size],
-                                onDelete = { catVm.deleteCategory(cat.id) },
-                                onUpdate = { n, d -> catVm.updateCategory(cat.id, n, d) }
+                                category      = cat,
+                                backgroundRes = categoryBgRes,
+                                onDelete      = {
+                                    // Debug: verifica que el onClick llega
+                                    Toast.makeText(context, "Borrando “${cat.nombre}”", Toast.LENGTH_SHORT).show()
+                                    catVm.deleteCategory(cat.id)
+                                },
+                                onUpdate      = { n, d ->
+                                    catVm.updateCategory(cat.id, n, d)
+                                }
                             )
-                            Spacer(Modifier.width(12.dp))
                         }
                     }
                     catError?.let {
                         Spacer(Modifier.height(8.dp))
                         Text(it, color = Color.Red)
                     }
-
+                    Spacer(Modifier.height(50.dp))
+                    Image(
+                        painter = painterResource(R.drawable.fotonovedades),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(250.dp)
+                            .padding(vertical = 16.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                    )
                     // --- NOVEDEDADES (LIBROS) ---
                     Spacer(Modifier.height(24.dp))
                     Row(
@@ -306,9 +340,9 @@ fun Home(navController: NavController,currentUserId: Int) {
 
 
 @Composable
-private fun CategoryCard(
+fun CategoryCard(
     category: Category,
-    backgroundColor: Color,
+    @DrawableRes backgroundRes: Int,
     onDelete: () -> Unit,
     onUpdate: (String, String?) -> Unit
 ) {
@@ -318,46 +352,79 @@ private fun CategoryCard(
 
     Card(
         modifier = Modifier
-            .width(170.dp),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        shape = RoundedCornerShape(12.dp)
+            .width(170.dp)
+            .height(250.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(category.nombre, fontWeight = FontWeight.ExtraBold, fontFamily = FontFamily.Serif)
-            Spacer(Modifier.height(4.dp))
-            Text(category.descripcion.orEmpty())
-            Spacer(Modifier.height(8.dp))
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Fondo de la categoría
+            Image(
+                painter = painterResource(backgroundRes),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .matchParentSize()
+                    .clip(RoundedCornerShape(16.dp))
+            )
+
+            // Pequeño contenedor en la parte inferior para título y descripción
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(60.dp)
+                    .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp))
+                    .background(Color.White.copy(alpha = 0.9f))
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = category.nombre,
+                        color = Color(0xFF1D3A58),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = category.descripcion.orEmpty(),
+                        color = Color(0xFF1D3A58).copy(alpha = 0.8f),
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            // Botones de acción en esquina superior derecha
             Row(
                 modifier = Modifier
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 IconButton(
                     onClick = onDelete,
                     modifier = Modifier
-                        .size(36.dp)
-                        .background(Color.Red.copy(alpha = 0.2f), CircleShape)
+                        .size(28.dp)
+                        .background(Color.Red.copy(alpha = 0.6f), CircleShape)
                         .clip(CircleShape)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Borrar categoría",
-                        tint = Color.Red
-                    )
+                    Icon(Icons.Default.Delete, contentDescription = "Borrar", tint = Color.White)
                 }
-                Spacer(Modifier.width(8.dp))
                 IconButton(
                     onClick = { showDialog = true },
                     modifier = Modifier
-                        .size(36.dp)
-                        .background(Color.Blue.copy(alpha = 0.2f), CircleShape)
+                        .size(28.dp)
+                        .background(Color.Blue.copy(alpha = 0.6f), CircleShape)
                         .clip(CircleShape)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Build,
-                        contentDescription = "Actualizar categoría",
-                        tint = Color.Blue
-                    )
+                    Icon(Icons.Default.Build, contentDescription = "Editar", tint = Color.White)
                 }
             }
         }
@@ -373,6 +440,8 @@ private fun CategoryCard(
                         value = editName,
                         onValueChange = { editName = it },
                         label = { Text("Nombre") },
+                        isError = editName.isBlank(),
+                        supportingText = { if (editName.isBlank()) Text("Requerido") },
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(Modifier.height(8.dp))
@@ -380,15 +449,20 @@ private fun CategoryCard(
                         value = editDesc,
                         onValueChange = { editDesc = it },
                         label = { Text("Descripción") },
+                        isError = editDesc.isBlank(),
+                        supportingText = { if (editDesc.isBlank()) Text("Requerido") },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
             },
             confirmButton = {
-                TextButton(onClick = {
-                    onUpdate(editName, editDesc.ifBlank { null })
-                    showDialog = false
-                }) { Text("OK") }
+                TextButton(
+                    onClick = {
+                        onUpdate(editName, editDesc.ifBlank { null })
+                        showDialog = false
+                    },
+                    enabled = editName.isNotBlank() && editDesc.isNotBlank()
+                ) { Text("OK") }
             },
             dismissButton = {
                 TextButton(onClick = { showDialog = false }) { Text("Cancelar") }
@@ -397,93 +471,207 @@ private fun CategoryCard(
     }
 }
 
-
-
 @Composable
-private fun BookCard(book: Book, onDelete: ()->Unit, onEdit: ()->Unit) {
+fun BookCard(
+    book: Book,
+    onDelete: () -> Unit,
+    onEdit: () -> Unit
+) {
     Card(
+        modifier = Modifier
+            .padding(8.dp) // Espacio exterior para sombra
+            .shadow(8.dp, RoundedCornerShape(12.dp))
+            .width(250.dp)
+            .height(300.dp),
         shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.width(250.dp).height(300.dp)
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
-        Image(
-            painter = rememberAsyncImagePainter(R.drawable.librocerrado),
-            contentDescription = "Fondo del libro ${book.Título}",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .alpha(0.5f) // Opcional: hacerla translúcida para que el contenido sea más visible
-        )
-        Column(Modifier.padding(12.dp)) {
-            Text(book.Título, fontWeight = FontWeight.ExtraBold, fontFamily = FontFamily.Serif)
-            Text(book.Autor)
-            Spacer(Modifier.height(8.dp))
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Imagen de fondo ocupando toda la carta
+            Image(
+                painter = rememberAsyncImagePainter(R.drawable.librocerrado),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .matchParentSize()
+                    .clip(RoundedCornerShape(12.dp))
+            )
+
+            // Etiqueta blanca en la parte inferior
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .height(60.dp)
+                    .clip(RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp))
+                    .background(Color.White.copy(alpha = 0.9f))
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = book.Título,
+                        color = Color(0xFF1D3A58),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = book.Autor,
+                        color = Color(0xFF1D3A58).copy(alpha = 0.8f),
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+
+            // Botones arriba a la derecha
             Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 IconButton(
                     onClick = onDelete,
-                    modifier = Modifier.background(Color.Red.copy(alpha = 0.2f), CircleShape)
+                    modifier = Modifier
+                        .size(28.dp)
+                        .background(Color.Red.copy(alpha = 0.6f), CircleShape)
+                        .clip(CircleShape)
                 ) {
-                    Icon(Icons.Default.Delete, contentDescription = "Borrar", tint = Color.Red)
+                    Icon(Icons.Default.Delete, contentDescription = "Borrar", tint = Color.White)
                 }
-                Spacer(Modifier.width(8.dp))
                 IconButton(
                     onClick = onEdit,
-                    modifier = Modifier.background(Color.Blue.copy(alpha = 0.2f), CircleShape)
+                    modifier = Modifier
+                        .size(28.dp)
+                        .background(Color.Blue.copy(alpha = 0.6f), CircleShape)
+                        .clip(CircleShape)
                 ) {
-                    Icon(Icons.Default.EditNote, "Editar", tint = Color.Blue)
+                    Icon(Icons.Default.EditNote, contentDescription = "Editar", tint = Color.White)
                 }
             }
         }
     }
 }
-
 @Composable
 private fun BookDialog(
     initial: Book?,
-    onConfirm: (Book)->Unit,
-    onDismiss: ()->Unit
+    onConfirm: (Book) -> Unit,
+    onDismiss: () -> Unit
 ) {
-    var titulo      by remember { mutableStateOf(initial?.Título.orEmpty()) }
-    var autor       by remember { mutableStateOf(initial?.Autor.orEmpty()) }
-    var año         by remember { mutableStateOf(initial?.Año?.toString().orEmpty()) }
-    var sinopsis    by remember { mutableStateOf(initial?.Sinopsis.orEmpty()) }
-    var categoria   by remember { mutableStateOf(initial?.Categoría_ID?.toString().orEmpty()) }
-    var estado      by remember { mutableStateOf(initial?.Estado.orEmpty()) }
-    var fecha       by remember { mutableStateOf(initial?.Fecha.orEmpty()) }
-    var estanteria  by remember { mutableStateOf(initial?.Estanteria_ID?.toString().orEmpty()) }
+    var titulo     by remember { mutableStateOf(initial?.Título.orEmpty()) }
+    var autor      by remember { mutableStateOf(initial?.Autor.orEmpty()) }
+    var año        by remember { mutableStateOf(initial?.Año?.toString().orEmpty()) }
+    var sinopsis   by remember { mutableStateOf(initial?.Sinopsis.orEmpty()) }
+    var categoria  by remember { mutableStateOf(initial?.Categoría_ID?.toString().orEmpty()) }
+    var estado     by remember { mutableStateOf(initial?.Estado.orEmpty()) }
+    var fecha      by remember { mutableStateOf(initial?.Fecha.orEmpty()) }
+    var estanteria by remember { mutableStateOf(initial?.Estanteria_ID?.toString().orEmpty()) }
+
+    val isFormValid by remember(
+        titulo, autor, año, sinopsis,
+        categoria, estado, fecha, estanteria
+    ) {
+        derivedStateOf {
+            titulo.isNotBlank() &&
+                    autor.isNotBlank() &&
+                    año.isNotBlank() &&
+                    sinopsis.isNotBlank() &&
+                    categoria.isNotBlank() &&
+                    estado.isNotBlank() &&
+                    fecha.isNotBlank() &&
+                    estanteria.isNotBlank()
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (initial==null) "Crear libro" else "Editar libro") },
+        title = { Text(if (initial == null) "Crear libro" else "Editar libro") },
         text = {
             Column {
-                OutlinedTextField(titulo,   { titulo = it   }, label = { Text("Título") })
-                OutlinedTextField(autor,    { autor = it    }, label = { Text("Autor") })
-                OutlinedTextField(año,      { año = it      }, label = { Text("Año") })
-                OutlinedTextField(sinopsis, { sinopsis = it }, label = { Text("Sinopsis") })
-                OutlinedTextField(categoria,{ categoria = it}, label = { Text("Categoría_ID") })
-                OutlinedTextField(estado,   { estado = it   }, label = { Text("Estado") })
-                OutlinedTextField(fecha,    { fecha = it    }, label = { Text("Fecha") })
-                OutlinedTextField(estanteria,{ estanteria = it}, label = { Text("Estanteria_ID") })
+                OutlinedTextField(
+                    value = titulo,
+                    onValueChange = { titulo = it },
+                    label = { Text("Título") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = autor,
+                    onValueChange = { autor = it },
+                    label = { Text("Autor") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = año,
+                    onValueChange = { año = it },
+                    label = { Text("Año") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = sinopsis,
+                    onValueChange = { sinopsis = it },
+                    label = { Text("Sinopsis") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = categoria,
+                    onValueChange = { categoria = it },
+                    label = { Text("Categoría_ID") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = estado,
+                    onValueChange = { estado = it },
+                    label = { Text("Estado") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = fecha,
+                    onValueChange = { fecha = it },
+                    label = { Text("Fecha") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = estanteria,
+                    onValueChange = { estanteria = it },
+                    label = { Text("Estanteria_ID") },
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         },
         confirmButton = {
-            TextButton(onClick = {
-                onConfirm(
-                    Book(
-                        ID = initial?.ID ?: 0,
-                        Título       = titulo,
-                        Autor        = autor,
-                        Año          = año.toIntOrNull() ?: 0,
-                        Sinopsis     = sinopsis,
-                        Categoría_ID = categoria.toIntOrNull() ?: 0,
-                        Estado       = estado,
-                        Fecha        = fecha,
-                        Estanteria_ID= estanteria.toIntOrNull() ?: 0
+            TextButton(
+                onClick = {
+                    onConfirm(
+                        Book(
+                            ID = initial?.ID ?: 0,
+                            Título       = titulo,
+                            Autor        = autor,
+                            Año          = año.toIntOrNull() ?: 0,
+                            Sinopsis     = sinopsis,
+                            Categoría_ID = categoria.toIntOrNull() ?: 0,
+                            Estado       = estado,
+                            Fecha        = fecha,
+                            Estanteria_ID= estanteria.toIntOrNull() ?: 0
+                        )
                     )
-                )
-            }) { Text("OK") }
+                },
+                enabled = isFormValid
+            ) {
+                Text("OK")
+            }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Cancelar") }
