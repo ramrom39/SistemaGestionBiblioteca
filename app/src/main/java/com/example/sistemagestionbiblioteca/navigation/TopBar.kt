@@ -16,14 +16,14 @@ import androidx.navigation.NavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CustomTopBar(navController: NavController) {
+fun CustomTopBar(navController: NavController,title: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = Color(0xFFF8B75E) // Color de fondo, ajusta a tu estilo
         ,
     ) {
         TopAppBar(
-            title = { Text(text = "Home", color = Color.White) },
+            title = { Text(text = title, color = Color.White) },
             actions = {
                 TextButton(
                     onClick = {

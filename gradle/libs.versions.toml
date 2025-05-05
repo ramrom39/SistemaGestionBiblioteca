@@ -1,5 +1,6 @@
 [versions]
 accompanistCalendar = "0.27.0"
+accompanistSystemuicontroller = "<latest-version>"
 accompanistSystemuicontrollerVersion = "0.31.4-beta"
 agp = "8.6.0"
 kotlin = "1.9.0"
@@ -17,6 +18,7 @@ composeMaterial = "1.4.0"
 runtimeLivedata = "1.7.8"
 
 [libraries]
+accompanist-systemuicontroller-vlatestversion = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 google-accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontrollerVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

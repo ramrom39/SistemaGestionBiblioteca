@@ -1,8 +1,10 @@
 package com.example.sistemagestionbiblioteca.screens
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -18,16 +20,22 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,8 +43,10 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.sistemagestionbiblioteca.R
 import com.example.sistemagestionbiblioteca.features.history.HistoryViewModel
 import com.example.sistemagestionbiblioteca.navigation.BottomBar
+import com.example.sistemagestionbiblioteca.navigation.CustomTopBar
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -47,6 +57,7 @@ fun History(
     currentUserId: Int,
     viewModel: HistoryViewModel = viewModel()
 ) {
+    val tittle="Historial"
     val searchQuery   by viewModel.searchQuery.collectAsState()
     val suggestions   by viewModel.suggestions.collectAsState()
     val selectedBook  by viewModel.selectedBook.collectAsState()
@@ -56,20 +67,25 @@ fun History(
     val focusManager  = LocalFocusManager.current
 
     // Colores
-    val orange          = Color(0xFFFAA634)
+    val orange          = Color(0xFFF8B75E)
     val cardBackground  = orange.copy(alpha = 0.8f)
     val titleBackground = orange
-    // barra de búsqueda con fondo blanco y texto naranja
+    // Colores de la barra de búsqueda
     val searchBarColors = TextFieldDefaults.colors(
-        unfocusedTextColor      = orange,
-        focusedTextColor        = orange,
-        unfocusedContainerColor = Color.White,
-        focusedContainerColor   = Color.White,
-        unfocusedIndicatorColor = Color.Transparent,
-        focusedIndicatorColor   = Color.Transparent,
-        cursorColor             = orange,
-        focusedLabelColor       = orange,
-        unfocusedLabelColor     = orange
+        unfocusedTextColor       = orange,
+        focusedTextColor         = orange,
+        unfocusedContainerColor  = Color.White,
+        focusedContainerColor    = Color.White,
+        disabledContainerColor   = Color.White,
+
+        unfocusedIndicatorColor  = Color.Transparent,
+        focusedIndicatorColor    = Color.Transparent,
+        disabledIndicatorColor   = Color.Transparent,
+        errorIndicatorColor      = Color.Transparent,
+        cursorColor              = orange,
+        focusedLabelColor        = orange,
+        unfocusedLabelColor      = orange,
+        disabledLabelColor       = orange
     )
 
     // Animación “pop” al enfocar el campo
@@ -81,19 +97,27 @@ fun History(
     )
 
     Scaffold(
+        topBar        = { CustomTopBar(navController,tittle) },
         bottomBar      = { BottomBar(navController, currentUserId) },
-        containerColor = Color.White
+        containerColor = Color(0xFFF6E6CA)
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .background(
+                    Brush.radialGradient(
+                    listOf(Color(0xFFF6E6CA), Color(0xFFF5EADA)),
+                    center = Offset(0.5f, 0.5f), radius = 2000f
+                    )
+                )
         ) {
-            // CAJA NARANJA CON BÚSQUEDA ABAJO
-            Column(
+
+            // CAJA NARANJA CON BÚSQUEDA Y SUGERENCIAS
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp)
+                    .wrapContentHeight()
                     .graphicsLayer { scaleX = scale; scaleY = scale }
                     .shadow(
                         elevation = 6.dp,
@@ -102,76 +126,100 @@ fun History(
                     .background(
                         brush = Brush.verticalGradient(
                             colors = listOf(
-                                orange.copy(alpha = 0.9f),
+                                orange,
                                 orange
                             )
                         ),
                         shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
                     ),
-                verticalArrangement = Arrangement.Bottom
+                contentAlignment = Alignment.Center
             ) {
-                TextField(
-                    value         = searchQuery,
-                    onValueChange = viewModel::onSearchQueryChanged,
-                    placeholder   = {
-                        Text(
-                            "Buscar libro por nombre",
-                            color = orange.copy(alpha = 0.5f)
-                        )
-                    },
-                    leadingIcon   = {
-                        Icon(Icons.Filled.Search, contentDescription = null, tint = orange)
-                    },
-                    trailingIcon  = {
-                        IconButton(onClick = {
-                            viewModel.onSearchButtonClicked()
-                            focusManager.clearFocus()
-                        }) {
-                            Icon(Icons.Filled.Search, contentDescription = "Buscar", tint = orange)
-                        }
-                    },
-                    colors     = searchBarColors,
-                    singleLine = true,
-                    modifier   = Modifier
-                        .fillMaxWidth()
-                        .height(80.dp)
-                        .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 12.dp)
-                        .onFocusChanged { focusState ->
-                            if (focusState.isFocused) {
-                                coroutineScope.launch {
-                                    isPressed = true
-                                    delay(300)
-                                    isPressed = false
-                                }
-                            } else {
-                                viewModel.clearSuggestions()
-                            }
-                        }
-                )
-            }
 
-            // SUGERENCIAS JUSTO DEBAJO
-            if (suggestions.isNotEmpty()) {
-                LazyColumn(
-                    Modifier
+                Column(
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
-                        .background(Color(0xFFF0F0F0))
-                        .padding(horizontal = 16.dp)
-                        .heightIn(max = 180.dp)
+                        .padding(bottom = 16.dp)
                 ) {
-                    items(suggestions) { book ->
-                        Text(
-                            book.Título,
-                            fontSize = 16.sp,
+                    Image(
+                        painter = painterResource(R.drawable.herohistorial),
+                        contentDescription = "Busca tu libro favorito",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp)
+                            .padding(horizontal = 10.dp)
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    // Campo de búsqueda
+                    TextField(
+                        value         = searchQuery,
+                        onValueChange = viewModel::onSearchQueryChanged,
+                        placeholder   = {
+                            Text(
+                                "Ej : El Quijote...",
+                                color = orange
+                            )
+                        },
+                        leadingIcon   = {
+                            IconButton(onClick = {
+                                viewModel.onSearchButtonClicked()
+                                focusManager.clearFocus()
+                            }) {
+                                Icon(Icons.Filled.Search, contentDescription = "Buscar", tint = orange)
+                            }
+                        },
+                        colors     = searchBarColors,
+                        singleLine = true,
+                        modifier   = Modifier
+                            .fillMaxWidth()
+                            .height(80.dp)
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color.White)
+                            .onFocusChanged { focusState ->
+                                if (focusState.isFocused) {
+                                    coroutineScope.launch {
+                                        isPressed = true
+                                        delay(300)
+                                        isPressed = false
+                                    }
+                                } else {
+                                    viewModel.clearSuggestions()
+                                }
+                            }
+                    )
+
+                    // Sugerencias integradas
+                    AnimatedVisibility(visible = suggestions.isNotEmpty()) {
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 8.dp)
-                                .clickable {
-                                    viewModel.onBookSelected(book)
-                                    focusManager.clearFocus()
+                                .padding(horizontal = 16.dp)
+                                .heightIn(max = 200.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        ) {
+                            LazyColumn(
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            ) {
+                                items(suggestions) { book ->
+                                    Text(
+                                        book.Título,
+                                        fontSize = 18.sp,
+                                        color = orange,
+                                        textDecoration = TextDecoration.None,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clickable {
+                                                viewModel.onBookSelected(book)
+                                                focusManager.clearFocus()
+                                            }
+                                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    )
                                 }
-                        )
+                            }
+                        }
                     }
                 }
             }
@@ -190,9 +238,18 @@ fun History(
                         viewModel.clearSuggestions()
                     }
             ) {
+                if (selectedBook == null) {
+                    Image(
+                        painter = painterResource(R.drawable.historiallibrocerrado),
+                        contentDescription = "Fondo Historial vacío",
+                        modifier = Modifier.fillMaxSize().height(150.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                }
                 Column {
                     selectedBook?.let { book ->
                         var showDialog by remember { mutableStateOf(false) }
+                        // Tarjeta resumen del libro
                         Card(
                             Modifier
                                 .fillMaxWidth()
@@ -204,7 +261,7 @@ fun History(
                                 Modifier
                                     .fillMaxWidth()
                                     .padding(16.dp),
-                                verticalAlignment    = Alignment.CenterVertically,
+                                verticalAlignment     = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Column(Modifier.weight(1f)) {
@@ -233,6 +290,7 @@ fun History(
                             }
                         }
 
+                        // Diálogo de detalles
                         if (showDialog) {
                             Dialog(
                                 onDismissRequest = {},
@@ -247,7 +305,7 @@ fun History(
                                         .wrapContentHeight()
                                         .background(cardBackground, RoundedCornerShape(12.dp))
                                 ) {
-                                    // Flecha atrás
+                                    // Barra superior con flecha atrás
                                     Box(
                                         Modifier
                                             .fillMaxWidth()
@@ -288,6 +346,7 @@ fun History(
                                     }
                                     // Contenido del diálogo
                                     Column(Modifier.padding(16.dp)) {
+                                        // Autor
                                         Box(
                                             Modifier
                                                 .fillMaxWidth()
@@ -306,6 +365,7 @@ fun History(
                                             )
                                         }
                                         Spacer(Modifier.height(16.dp))
+                                        // Categoría y estantería
                                         Row(
                                             Modifier
                                                 .fillMaxWidth()
@@ -335,6 +395,7 @@ fun History(
                                                 }
                                             }
                                         }
+                                        // Historial de acciones
                                         Text(
                                             "Historial de acciones",
                                             fontSize   = 18.sp,

@@ -57,7 +57,7 @@ import com.example.sistemagestionbiblioteca.data.books.BookCreateRequest
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Home(navController: NavController,currentUserId: Int) {
-
+    val tittle="Home"
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
     val scroll = rememberScrollState()
@@ -109,7 +109,7 @@ fun Home(navController: NavController,currentUserId: Int) {
     }
 
     Scaffold(
-        topBar        = { CustomTopBar(navController) },
+        topBar        = { CustomTopBar(navController,tittle) },
         bottomBar = { BottomBar(navController, currentUserId) },
         containerColor = Color(0xFFF6E6CA)
     ) { innerPadding ->
