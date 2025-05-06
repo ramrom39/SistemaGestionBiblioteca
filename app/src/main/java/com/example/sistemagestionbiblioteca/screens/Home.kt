@@ -512,7 +512,7 @@ fun BookCard(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = book.Título,
+                        text = book.Título?:"",
                         color = Color(0xFF1D3A58),
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
@@ -520,7 +520,7 @@ fun BookCard(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = book.Autor,
+                        text = book.Autor?:"" ,
                         color = Color(0xFF1D3A58).copy(alpha = 0.8f),
                         fontSize = 12.sp,
                         maxLines = 1,

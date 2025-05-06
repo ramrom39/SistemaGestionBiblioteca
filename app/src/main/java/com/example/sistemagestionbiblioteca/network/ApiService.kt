@@ -8,6 +8,7 @@ import com.example.sistemagestionbiblioteca.data.categories.Category
 
 import com.example.sistemagestionbiblioteca.data.categories.CategoryResponse
 import com.example.sistemagestionbiblioteca.data.history.History
+import com.example.sistemagestionbiblioteca.data.shelves.Shelf
 import com.example.sistemagestionbiblioteca.data.users.LoginResponse
 import com.example.sistemagestionbiblioteca.data.users.RegisterResponse
 import com.example.sistemagestionbiblioteca.data.users.User
@@ -16,6 +17,7 @@ import com.example.sistemagestionbiblioteca.data.users.UserRegister
 import com.example.sistemagestionbiblioteca.data.users.UserLogin
 import com.example.sistemagestionbiblioteca.data.users.UserNameResponse
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
@@ -25,6 +27,7 @@ import retrofit2.http.HTTP
 import retrofit2.http.Headers
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ApiService {
@@ -89,9 +92,18 @@ interface ApiService {
     @DELETE("librosController.php")
     fun deleteBook(@Query("id") id: Int): Call<BookResponse>
 
-
     @GET("historialController.php")
     suspend fun getHistoryByBookId(@Query("libroId") bookId: Int): List<History>
+
+    // Rutas de estanterías y libros
+    @GET("estanteriasController.php")
+    suspend fun getShelves(): Response<List<Shelf>>
+
+
+    @GET("estanteriasController.php")
+    suspend fun getBooksByShelf(
+        @Query("shelfId") shelfId: Int
+    ): Response<List<Book>>
 
 }
 
