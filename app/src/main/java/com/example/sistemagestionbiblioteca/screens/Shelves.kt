@@ -1,9 +1,14 @@
 package com.example.sistemagestionbiblioteca.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,45 +21,45 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-
 import androidx.compose.material3.Text
 import androidx.compose.runtime.collectAsState
-
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-
-
 import com.example.sistemagestionbiblioteca.navigation.BottomBar
 import com.example.sistemagestionbiblioteca.navigation.CustomTopBar
 import com.example.sistemagestionbiblioteca.network.ApiService
-
 import com.example.sistemagestionbiblioteca.features.shelves.ShelvesViewModel
 import com.example.sistemagestionbiblioteca.features.shelves.ShelvesViewModelFactory
-
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import com.example.sistemagestionbiblioteca.R
 import com.example.sistemagestionbiblioteca.data.books.Book
 import com.example.sistemagestionbiblioteca.data.shelves.Shelf
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
 @Composable
 fun Shelves(
@@ -64,44 +69,106 @@ fun Shelves(
         factory = ShelvesViewModelFactory(ApiService.getInstance())
     )
 ) {
-    // Observamos listas de estanterías y mapas de libros
-    val shelves = viewModel.shelves.collectAsState().value
-    val booksMap = viewModel.booksByShelf.collectAsState().value
+    val isRefreshing by viewModel.isLoading.collectAsState()
+    val shelves by viewModel.shelves.collectAsState()
+    val booksMap by viewModel.booksByShelf.collectAsState()
+    val context = LocalContext.current
+    val swipeState = rememberSwipeRefreshState(isRefreshing)
 
     Scaffold(
         topBar = { CustomTopBar(navController, "Estanterías") },
         bottomBar = { BottomBar(navController, currentUserId) },
         containerColor = Color.White
     ) { paddingValues ->
-        LazyColumn(
+        SwipeRefresh(
+            state = swipeState,
+            onRefresh = { viewModel.refresh() },
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
                 .background(Color.White)
-                .padding(8.dp)
+                .padding(paddingValues)
         ) {
-            items(shelves) { shelf: Shelf ->
-                // Título de la estantería
-                Text(
-                    text = shelf.ubicacion ?: shelf.ubicacion,
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-
-                // Fila horizontal de libros de esta estantería
-                val books: List<Book> = booksMap[shelf.id].orEmpty()
-                LazyRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp)
-                ) {
-                    items(books) { book ->
-                        Box(modifier = Modifier.padding(end = 8.dp)) {
-                            // Usamos carta específica de estanterías con eliminación
-                            ShelvesBookCard(
-                                book = book,
-                                onDelete = { viewModel.deleteBook(shelf.id, book) }
+            if (isRefreshing) {
+                // Placeholder de carga con 3 secciones y 3 tarjetas cada una
+                LazyColumn(Modifier.fillMaxSize().padding(8.dp)) {
+                    items(3) { _ ->
+                        // Cabecera fantasma
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .height(24.dp)
+                                .background(Color.Gray.copy(alpha = 0.3f))
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        // Fila de tarjetas fantasma
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(horizontal = 8.dp)
+                        ) {
+                            items(3) { _ ->
+                                Box(
+                                    Modifier
+                                        .width(220.dp)
+                                        .height(260.dp)
+                                        .background(Color.Gray.copy(alpha = 0.3f))
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(24.dp))
+                    }
+                }
+            } else {
+                val nonEmptyShelves = shelves.filter { booksMap[it.id]?.isNotEmpty() == true }
+                LazyColumn(Modifier.fillMaxSize().padding(8.dp)) {
+                    items(nonEmptyShelves) { shelf: Shelf ->
+                        val books = booksMap[shelf.id].orEmpty()
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = shelf.ubicacion,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color(0xFF1D3A58),
+                                fontSize = 16.sp
                             )
+                            Badge(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            ) {
+                                Text(
+                                    text = "${books.size} libros",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }
+                        Divider(
+                            color = Color(0xFF1D3A58),
+                            thickness = 2.dp,
+                            modifier = Modifier
+                                .fillMaxWidth(0.72f)
+                                .padding(bottom = 8.dp)
+                        )
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(horizontal = 8.dp)
+                        ) {
+                            items(books) { book ->
+                                ShelvesBookCard(
+                                    book = book,
+                                    onDelete = {
+                                        viewModel.deleteBook(shelf.id, book)
+                                        Toast.makeText(
+                                            context,
+                                            "Libro '${book.Título}' eliminado",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                )
+                            }
                         }
                     }
                 }
@@ -109,6 +176,8 @@ fun Shelves(
         }
     }
 }
+
+
 
 
 
