@@ -1,6 +1,8 @@
 package com.example.sistemagestionbiblioteca.screens
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -14,6 +16,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -22,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
@@ -30,6 +34,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
@@ -56,6 +61,8 @@ import com.example.sistemagestionbiblioteca.navigation.CustomTopBar
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun History(
@@ -63,35 +70,41 @@ fun History(
     currentUserId: Int,
     viewModel: HistoryViewModel = viewModel()
 ) {
-    val tittle="Historial"
-    val searchQuery   by viewModel.searchQuery.collectAsState()
-    val suggestions   by viewModel.suggestions.collectAsState()
-    val selectedBook  by viewModel.selectedBook.collectAsState()
-    val categoryName  by viewModel.categoryName.collectAsState()
-    val historyList   by viewModel.historyList.collectAsState()
-    val userNames     by viewModel.userNames.collectAsState()
-    val focusManager  = LocalFocusManager.current
+    val title          = "Historial"
+    val searchQuery    by viewModel.searchQuery.collectAsState()
+    val suggestions    by viewModel.suggestions.collectAsState()
+    val selectedBook   by viewModel.selectedBook.collectAsState()
+    val categoryName   by viewModel.categoryName.collectAsState()
+    val historyList    by viewModel.historyList.collectAsState()
+    val userNames      by viewModel.userNames.collectAsState()
+    val focusManager   = LocalFocusManager.current
+
+    // Estados para diálogos
+    var showDialog     by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
+    var expanded       by remember { mutableStateOf(false) }
+
     // Colores
     val orange          = Color(0xFFF8B75E)
-    val cardBackground  = orange.copy(alpha = 0.8f)
+    val cardBackground  = Color(0xFFFAB652)
     val titleBackground = orange
+
+    val context = LocalContext.current
     // Colores de la barra de búsqueda
     val searchBarColors = TextFieldDefaults.colors(
-        unfocusedTextColor       = Color(0xFF1D3A58),
-        focusedTextColor         = Color(0xFF1D3A58),
-        unfocusedContainerColor  = Color.White,
-        focusedContainerColor    = Color.White,
-        disabledContainerColor   = Color.White,
-
-        unfocusedIndicatorColor  = Color.Transparent,
-        focusedIndicatorColor    = Color.Transparent,
-        disabledIndicatorColor   = Color.Transparent,
-        errorIndicatorColor      = Color.Transparent,
-        cursorColor              = Color(0xFF1D3A58),
-        focusedLabelColor        = Color(0xFF1D3A58),
-        unfocusedLabelColor      = Color(0xFF1D3A58),
-        disabledLabelColor       = Color(0xFF1D3A58)
+        unfocusedTextColor      = Color(0xFF1D3A58),
+        focusedTextColor        = Color(0xFF1D3A58),
+        unfocusedContainerColor = Color.White,
+        focusedContainerColor   = Color.White,
+        disabledContainerColor  = Color.White,
+        unfocusedIndicatorColor = Color.Transparent,
+        focusedIndicatorColor   = Color.Transparent,
+        disabledIndicatorColor  = Color.Transparent,
+        errorIndicatorColor     = Color.Transparent,
+        cursorColor             = Color(0xFF1D3A58),
+        focusedLabelColor       = Color(0xFF1D3A58),
+        unfocusedLabelColor     = Color(0xFF1D3A58),
+        disabledLabelColor      = Color(0xFF1D3A58)
     )
 
     // Animación “pop” al enfocar el campo
@@ -102,9 +115,14 @@ fun History(
         animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing)
     )
 
+    LaunchedEffect(Unit) {
+        viewModel.uiEvents.collect { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+        }
+    }
     Scaffold(
-        topBar        = { CustomTopBar(navController,tittle) },
-        bottomBar      = { BottomBar(navController, currentUserId) },
+        topBar        = { CustomTopBar(navController, title) },
+        bottomBar     = { BottomBar(navController, currentUserId) },
         containerColor = Color(0xFFF6E6CA)
     ) { innerPadding ->
         Column(
@@ -113,13 +131,12 @@ fun History(
                 .padding(innerPadding)
                 .background(
                     Brush.radialGradient(
-                    listOf(Color(0xFFF6E6CA), Color(0xFFF5EADA)),
-                    center = Offset(0.5f, 0.5f), radius = 2000f
+                        listOf(Color(0xFFF6E6CA), Color(0xFFF5EADA)),
+                        center = Offset(0.5f, 0.5f), radius = 2000f
                     )
                 )
         ) {
-
-            // CAJA NARANJA CON BÚSQUEDA Y SUGERENCIAS
+            // Caja naranja con búsqueda
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -130,17 +147,11 @@ fun History(
                         shape     = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
                     )
                     .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                orange,
-                                orange
-                            )
-                        ),
+                        brush = Brush.verticalGradient(listOf(orange, orange)),
                         shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
-
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -156,14 +167,13 @@ fun History(
                             .padding(horizontal = 10.dp)
                     )
                     Spacer(Modifier.height(8.dp))
-                    // Campo de búsqueda
                     TextField(
                         value         = searchQuery,
                         onValueChange = viewModel::onSearchQueryChanged,
                         placeholder   = {
                             Text(
                                 "Ej : El Quijote...",
-                                color = Color(0xFF1D3A58),
+                                color      = Color(0xFF1D3A58),
                                 fontWeight = FontWeight.Bold
                             )
                         },
@@ -175,7 +185,6 @@ fun History(
                                 Icon(Icons.Filled.Search, contentDescription = "Buscar", tint = Color(0xFF1D3A58))
                             }
                         },
-
                         colors     = searchBarColors,
                         singleLine = true,
                         modifier   = Modifier
@@ -197,27 +206,23 @@ fun History(
                             }
                     )
 
-                    // Sugerencias integradas
                     AnimatedVisibility(visible = suggestions.isNotEmpty()) {
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
                                 .heightIn(max = 200.dp),
-                            shape = RoundedCornerShape(12.dp),
+                            shape  = RoundedCornerShape(12.dp),
                             colors = CardDefaults.cardColors(containerColor = Color.White),
                             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                         ) {
-                            LazyColumn(
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            ) {
+                            LazyColumn(modifier = Modifier.padding(vertical = 8.dp)) {
                                 items(suggestions) { book ->
                                     Text(
                                         book.Título,
                                         fontSize = 18.sp,
-                                        color = Color(0xFF1D3A58),
+                                        color    = Color(0xFF1D3A58),
                                         fontWeight = FontWeight.Medium,
-                                        textDecoration = TextDecoration.None,
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .clickable {
@@ -235,7 +240,6 @@ fun History(
 
             Spacer(Modifier.height(24.dp))
 
-            // RESTO DEL CONTENIDO (cards y diálogo)
             Box(
                 Modifier
                     .fillMaxSize()
@@ -248,55 +252,86 @@ fun History(
                     }
             ) {
                 if (selectedBook == null) {
-                    EmptyHistoryAnimation(
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                    EmptyHistoryAnimation(modifier = Modifier.align(Alignment.Center))
                 }
                 Column {
                     selectedBook?.let { book ->
-                        var showDialog by remember { mutableStateOf(false) }
-                        // Tarjeta resumen del libro
-                        Card(
+                        // Tarjeta resumen del libro con botones
+                        Box(
                             Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp),
-                            colors    = CardDefaults.cardColors(containerColor = cardBackground),
-                            elevation = CardDefaults.cardElevation(4.dp)
+                                .padding(16.dp)
+                                // Solo sombra cuando está expandido
+                                .then(if (expanded) Modifier.shadow(8.dp, RoundedCornerShape(12.dp)) else Modifier)
+                                .background(Color.White, RoundedCornerShape(12.dp))
+                                .animateContentSize() // anima sólo el cambio de tamaño
                         ) {
-                            Row(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                verticalAlignment     = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                Column(Modifier.weight(1f)) {
-                                    Text(
-                                        book.Título,
-                                        fontSize   = 20.sp,
-                                        fontWeight = FontWeight.ExtraBold,
-                                        color      = Color.White
-                                    )
-                                    Spacer(Modifier.height(6.dp))
-                                    Text(
-                                        book.Sinopsis,
-                                        fontSize = 16.sp,
-                                        color    = Color.White,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-                                IconButton(onClick = { showDialog = true }) {
+                            Column {
+                                // Header clicable
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { expanded = !expanded }
+                                        .padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Column(Modifier.weight(1f)) {
+                                        Text(book.Título, fontWeight = FontWeight.Bold,color= Color(0xFF1D3A58),fontSize = 20.sp)
+                                        Spacer(Modifier.height(12.dp))
+                                        Text(
+                                            book.Sinopsis,
+                                            maxLines = if (expanded) Int.MAX_VALUE else 2,
+                                            overflow = TextOverflow.Ellipsis,
+                                            color      = Color(0xFF1D3A58),
+                                            fontWeight = FontWeight.Medium
+                                        )
+                                    }
+                                    val rotation by animateFloatAsState(if (expanded) 90f else 0f)
                                     Icon(
                                         Icons.Filled.KeyboardArrowRight,
-                                        contentDescription = "Ver detalles",
-                                        tint = Color.White
+                                        contentDescription = if (expanded) "Colapsar" else "Expandir",
+                                        modifier = Modifier.rotate(rotation)
                                     )
+                                }
+
+                                // Botones desplegables
+                                AnimatedVisibility(visible = expanded) {
+                                    Column {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(16.dp),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+
+                                        ) {
+                                            Button(
+                                                onClick = { showDialog = true },
+                                                modifier = Modifier.weight(1f),
+                                                colors   = ButtonDefaults.buttonColors(
+                                                    containerColor = Color(0xFFF6B459),
+                                                    contentColor   = Color.White
+                                                )
+                                            ) {
+                                                Text("Ver detalles", color = Color.White)
+                                            }
+                                            Button(
+                                                onClick = { showEditDialog = true },
+                                                modifier = Modifier.weight(1f),
+                                                colors   = ButtonDefaults.buttonColors(
+                                                    containerColor = Color(0xFFF6B459),
+                                                    contentColor   = Color.White
+                                                )
+                                            ) {
+                                                Text("Editar",color = Color.White)
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
 
-                        // Diálogo de detalles
+                        // Detalles en diálogo
                         if (showDialog) {
                             Dialog(
                                 onDismissRequest = {},
@@ -311,7 +346,7 @@ fun History(
                                         .wrapContentHeight()
                                         .background(cardBackground, RoundedCornerShape(12.dp))
                                 ) {
-                                    // Barra superior con flecha atrás
+                                    // Flecha atrás
                                     Box(
                                         Modifier
                                             .fillMaxWidth()
@@ -333,28 +368,27 @@ fun History(
                                             )
                                         }
                                     }
-                                    // Título del diálogo
+                                    // Título en diálogo
                                     Box(
-                                        modifier = Modifier
+                                        Modifier
                                             .fillMaxWidth()
                                             .background(titleBackground)
-                                            .padding(vertical = 12.dp, horizontal = 16.dp),  // dejamos padding en vez de height fijo
+                                            .padding(vertical = 12.dp, horizontal = 16.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
                                             text = book.Título,
-                                            fontSize = 24.sp,                                 // un pelín más pequeño
+                                            fontSize = 24.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = Color.White,
                                             textAlign = TextAlign.Center,
-                                            maxLines = 2,                                     // máximo dos líneas
-                                            overflow = TextOverflow.Ellipsis,                 // con "..." si se pasa
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis,
                                             modifier = Modifier.fillMaxWidth()
                                         )
                                     }
-                                    // Contenido del diálogo
+                                    // Contenido
                                     Column(Modifier.padding(16.dp)) {
-                                        // Autor
                                         Box(
                                             Modifier
                                                 .fillMaxWidth()
@@ -373,17 +407,13 @@ fun History(
                                             )
                                         }
                                         Spacer(Modifier.height(16.dp))
-                                        // Categoría y estantería
                                         Row(
                                             Modifier
                                                 .fillMaxWidth()
                                                 .padding(bottom = 16.dp),
                                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                                         ) {
-                                            listOf(
-                                                categoryName,
-                                                book.Estanteria_ID.toString()
-                                            ).forEach { label ->
+                                            listOf(categoryName, book.Estanteria_ID.toString()).forEach { label ->
                                                 Box(
                                                     Modifier
                                                         .weight(1f)
@@ -403,7 +433,6 @@ fun History(
                                                 }
                                             }
                                         }
-                                        // Historial de acciones
                                         Text(
                                             "Historial de acciones",
                                             fontSize   = 18.sp,
@@ -425,16 +454,8 @@ fun History(
                                                     horizontalArrangement = Arrangement.SpaceBetween
                                                 ) {
                                                     Column {
-                                                        Text(
-                                                            history.date,
-                                                            fontSize = 14.sp,
-                                                            color    = Color.White
-                                                        )
-                                                        Text(
-                                                            history.actionType,
-                                                            fontSize = 14.sp,
-                                                            color    = Color.White.copy(alpha = 0.9f)
-                                                        )
+                                                        Text(history.date, fontSize = 14.sp, color = Color.White)
+                                                        Text(history.actionType, fontSize = 14.sp, color = Color.White.copy(alpha = 0.9f))
                                                     }
                                                     Text(
                                                         userNames[history.userId] ?: "…",
@@ -443,15 +464,22 @@ fun History(
                                                         color     = Color.White
                                                     )
                                                 }
-                                                Divider(
-                                                    color     = Color.White.copy(alpha = 0.3f),
-                                                    thickness = 0.5.dp
-                                                )
+                                                Divider(color = Color.White.copy(alpha = 0.3f), thickness = 0.5.dp)
                                             }
                                         }
                                     }
                                 }
                             }
+                        }
+                        if (showEditDialog) {
+                            BookDialogH(
+                                initial   = book,
+                                onConfirm = { updatedBook ->
+                                    viewModel.updateBook(updatedBook, currentUserId)
+                                    showEditDialog = false
+                                },
+                                onDismiss = { showEditDialog = false }
+                            )
                         }
                     }
                 }
@@ -462,20 +490,12 @@ fun History(
 
 @Composable
 fun EmptyHistoryAnimation(modifier: Modifier = Modifier) {
-    // 1) Carga tu animación desde raw/empty_history_books.json
-    val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.empty_history_books)
-    )
-    // 2) Hazla iterar infinitamente
-    val progress by animateLottieCompositionAsState(
-        composition,
-        iterations = LottieConstants.IterateForever
-    )
-    // 3) Muestra la animación
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.empty_history_books))
+    val progress by animateLottieCompositionAsState(composition, iterations = LottieConstants.IterateForever)
     LottieAnimation(
         composition = composition,
-        progress = progress,
-        modifier = modifier
+        progress    = progress,
+        modifier    = modifier
             .fillMaxWidth()
             .height(350.dp)
             .padding(16.dp)
@@ -498,7 +518,7 @@ fun BookDialogH(
     var fecha      by remember { mutableStateOf(initial?.Fecha.orEmpty()) }
     var estanteria by remember { mutableStateOf(initial?.Estanteria_ID?.toString().orEmpty()) }
 
-    val isFormValid by remember{
+    val isFormValid by remember {
         derivedStateOf {
             titulo.isNotBlank() &&
                     autor.isNotBlank() &&
@@ -512,85 +532,46 @@ fun BookDialogH(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text(text = if (initial == null) "Crear libro" else "Editar libro")
-        },
+        title = { Text(text = if (initial == null) "Crear libro" else "Editar libro") },
         text = {
             Column(Modifier.fillMaxWidth()) {
-                OutlinedTextField(
-                    value = titulo, onValueChange = { titulo = it },
-                    label = { Text("Título") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                OutlinedTextField(value = titulo, onValueChange = { titulo = it }, label = { Text("Título") }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = autor, onValueChange = { autor = it },
-                    label = { Text("Autor") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                OutlinedTextField(value = autor, onValueChange = { autor = it }, label = { Text("Autor") }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = año, onValueChange = { año = it },
-                    label = { Text("Año") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                OutlinedTextField(value = año, onValueChange = { año = it }, label = { Text("Año") }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = sinopsis, onValueChange = { sinopsis = it },
-                    label = { Text("Sinopsis") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                OutlinedTextField(value = sinopsis, onValueChange = { sinopsis = it }, label = { Text("Sinopsis") }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = categoria, onValueChange = { categoria = it },
-                    label = { Text("Categoría_ID") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                OutlinedTextField(value = categoria, onValueChange = { categoria = it }, label = { Text("Categoría_ID") }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = estado, onValueChange = { estado = it },
-                    label = { Text("Estado") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                OutlinedTextField(value = estado, onValueChange = { estado = it }, label = { Text("Estado") }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = fecha, onValueChange = { fecha = it },
-                    label = { Text("Fecha") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                OutlinedTextField(value = fecha, onValueChange = { fecha = it }, label = { Text("Fecha") }, modifier = Modifier.fillMaxWidth())
                 Spacer(Modifier.height(8.dp))
-                OutlinedTextField(
-                    value = estanteria, onValueChange = { estanteria = it },
-                    label = { Text("Estanteria_ID") },
-                    modifier = Modifier.fillMaxWidth()
-                )
+                OutlinedTextField(value = estanteria, onValueChange = { estanteria = it }, label = { Text("Estanteria_ID") }, modifier = Modifier.fillMaxWidth())
             }
         },
         confirmButton = {
-            TextButton(
-                onClick = {
-                    val book = Book(
-                        ID             = initial?.ID ?: 0,
-                        Título         = titulo,
-                        Autor          = autor,
-                        Año            = año.toInt(),
-                        Sinopsis       = sinopsis,
-                        Categoría_ID   = categoria.toInt(),
-                        Estado         = estado,
-                        Fecha          = fecha,
-                        Estanteria_ID  = estanteria.toInt()
-                    )
-                    onConfirm(book)
-                },
-                enabled = isFormValid
-            ) {
+            TextButton(onClick = {
+                val book = Book(
+                    ID            = initial?.ID ?: 0,
+                    Título        = titulo,
+                    Autor         = autor,
+                    Año           = año.toInt(),
+                    Sinopsis      = sinopsis,
+                    Categoría_ID  = categoria.toInt(),
+                    Estado        = estado,
+                    Fecha         = fecha,
+                    Estanteria_ID = estanteria.toInt()
+                )
+                onConfirm(book)
+            }, enabled = isFormValid) {
                 Text("OK")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancelar")
-            }
+            TextButton(onClick = onDismiss) { Text("Cancelar") }
         }
     )
 }

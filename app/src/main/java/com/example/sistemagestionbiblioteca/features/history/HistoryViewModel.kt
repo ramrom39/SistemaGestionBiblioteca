@@ -1,8 +1,11 @@
 package com.example.sistemagestionbiblioteca.features.history
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sistemagestionbiblioteca.data.books.Book
+import com.example.sistemagestionbiblioteca.data.books.BookResponse
+import com.example.sistemagestionbiblioteca.data.books.BookUpdateRequest
 import com.example.sistemagestionbiblioteca.data.categories.Category
 import com.example.sistemagestionbiblioteca.data.history.History
 import com.example.sistemagestionbiblioteca.data.users.UserNameResponse
@@ -10,8 +13,10 @@ import com.example.sistemagestionbiblioteca.network.ApiService
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
@@ -20,6 +25,9 @@ import retrofit2.Response
 class HistoryViewModel : ViewModel() {
     var searchQuery = MutableStateFlow("")
         private set
+
+    private val _uiEvents = MutableSharedFlow<String>()
+    val uiEvents = _uiEvents.asSharedFlow()
 
     private val _suggestions  = MutableStateFlow<List<Book>>(emptyList())
     val suggestions: StateFlow<List<Book>> = _suggestions
@@ -127,6 +135,49 @@ class HistoryViewModel : ViewModel() {
                 _categoryName.value = ""
             }
         })
+    }
+
+    fun updateBook(book: Book, userId: Int) {
+        val req = BookUpdateRequest(
+            titulo             = book.Título,
+            autor              = book.Autor,
+            año                = book.Año,
+            sinopsis           = book.Sinopsis,
+            categoria          = book.Categoría_ID,
+            estado             = book.Estado,
+            fecha              = book.Fecha,
+            estanteria         = book.Estanteria_ID,
+            usuarioModificador = userId
+        )
+
+        ApiService.getInstance()
+            .updateBook(book.ID, req)
+            .enqueue(object : Callback<BookResponse> {
+                override fun onResponse(
+                    call: Call<BookResponse>,
+                    response: Response<BookResponse>
+                ) {
+                    if (response.isSuccessful && response.body() != null) {
+                        // refresca detalle/historial…
+                        onBookSelected(book)
+                        // 2. Emite evento de éxito
+                        viewModelScope.launch {
+                            _uiEvents.emit("Libro actualizado correctamente")
+                        }
+                    } else {
+                        // 3. Emite evento de error
+                        viewModelScope.launch {
+                            _uiEvents.emit("Error al actualizar libro")
+                        }
+                    }
+                }
+
+                override fun onFailure(call: Call<BookResponse>, t: Throwable) {
+                    viewModelScope.launch {
+                        _uiEvents.emit("Fallo de red: ${t.localizedMessage}")
+                    }
+                }
+            })
     }
 
     private fun clearAllData() {

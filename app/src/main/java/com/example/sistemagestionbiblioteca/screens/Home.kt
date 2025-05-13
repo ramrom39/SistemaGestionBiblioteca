@@ -283,7 +283,7 @@ fun Home(navController: NavController,currentUserId: Int) {
                             .padding(vertical = 8.dp)
                     )
                     if (showCreateBookDialog) {
-                        com.example.sistemagestionbiblioteca.auxiliarcode.BookDialog(
+                       BookDialog(
                             initial = null,
                             onConfirm = { b ->
                                 val req = BookCreateRequest(
@@ -316,7 +316,7 @@ fun Home(navController: NavController,currentUserId: Int) {
                     }
 
                     if (showEditBookDialog && bookToEdit != null) {
-                        com.example.sistemagestionbiblioteca.auxiliarcode.BookDialog(
+                        BookDialog(
                             initial = bookToEdit!!,
                             onConfirm = { updatedBook ->
                                 bookVm.updateBook(updatedBook, currentUserId)
