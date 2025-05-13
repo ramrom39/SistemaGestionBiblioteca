@@ -8,7 +8,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -16,9 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EditNote
-import androidx.compose.material.icons.filled.Update
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -46,10 +43,8 @@ import com.example.sistemagestionbiblioteca.navigation.CustomTopBar
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import coil.compose.rememberAsyncImagePainter
 import com.example.sistemagestionbiblioteca.data.books.BookCreateRequest
@@ -288,7 +283,7 @@ fun Home(navController: NavController,currentUserId: Int) {
                             .padding(vertical = 8.dp)
                     )
                     if (showCreateBookDialog) {
-                        BookDialog(
+                        com.example.sistemagestionbiblioteca.auxiliarcode.BookDialog(
                             initial = null,
                             onConfirm = { b ->
                                 val req = BookCreateRequest(
@@ -321,7 +316,7 @@ fun Home(navController: NavController,currentUserId: Int) {
                     }
 
                     if (showEditBookDialog && bookToEdit != null) {
-                        BookDialog(
+                        com.example.sistemagestionbiblioteca.auxiliarcode.BookDialog(
                             initial = bookToEdit!!,
                             onConfirm = { updatedBook ->
                                 bookVm.updateBook(updatedBook, currentUserId)

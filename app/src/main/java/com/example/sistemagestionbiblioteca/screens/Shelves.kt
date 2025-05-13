@@ -48,6 +48,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -78,14 +80,19 @@ fun Shelves(
     Scaffold(
         topBar = { CustomTopBar(navController, "Estanterías") },
         bottomBar = { BottomBar(navController, currentUserId) },
-        containerColor = Color.White
+        containerColor = Color(0xFFF6E6CA)
     ) { paddingValues ->
         SwipeRefresh(
             state = swipeState,
             onRefresh = { viewModel.refresh() },
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(
+                    Brush.radialGradient(
+                        listOf(Color(0xFFF6E6CA), Color(0xFFF5EADA)),
+                        center = Offset(0.5f, 0.5f), radius = 2000f
+                    )
+                )
                 .padding(paddingValues)
         ) {
             if (isRefreshing) {

@@ -43,7 +43,13 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.example.sistemagestionbiblioteca.R
+import com.example.sistemagestionbiblioteca.data.books.Book
 import com.example.sistemagestionbiblioteca.features.history.HistoryViewModel
 import com.example.sistemagestionbiblioteca.navigation.BottomBar
 import com.example.sistemagestionbiblioteca.navigation.CustomTopBar
@@ -65,15 +71,15 @@ fun History(
     val historyList   by viewModel.historyList.collectAsState()
     val userNames     by viewModel.userNames.collectAsState()
     val focusManager  = LocalFocusManager.current
-
+    var showEditDialog by remember { mutableStateOf(false) }
     // Colores
     val orange          = Color(0xFFF8B75E)
     val cardBackground  = orange.copy(alpha = 0.8f)
     val titleBackground = orange
     // Colores de la barra de búsqueda
     val searchBarColors = TextFieldDefaults.colors(
-        unfocusedTextColor       = orange,
-        focusedTextColor         = orange,
+        unfocusedTextColor       = Color(0xFF1D3A58),
+        focusedTextColor         = Color(0xFF1D3A58),
         unfocusedContainerColor  = Color.White,
         focusedContainerColor    = Color.White,
         disabledContainerColor   = Color.White,
@@ -82,10 +88,10 @@ fun History(
         focusedIndicatorColor    = Color.Transparent,
         disabledIndicatorColor   = Color.Transparent,
         errorIndicatorColor      = Color.Transparent,
-        cursorColor              = orange,
-        focusedLabelColor        = orange,
-        unfocusedLabelColor      = orange,
-        disabledLabelColor       = orange
+        cursorColor              = Color(0xFF1D3A58),
+        focusedLabelColor        = Color(0xFF1D3A58),
+        unfocusedLabelColor      = Color(0xFF1D3A58),
+        disabledLabelColor       = Color(0xFF1D3A58)
     )
 
     // Animación “pop” al enfocar el campo
@@ -157,7 +163,8 @@ fun History(
                         placeholder   = {
                             Text(
                                 "Ej : El Quijote...",
-                                color = orange
+                                color = Color(0xFF1D3A58),
+                                fontWeight = FontWeight.Bold
                             )
                         },
                         leadingIcon   = {
@@ -165,9 +172,10 @@ fun History(
                                 viewModel.onSearchButtonClicked()
                                 focusManager.clearFocus()
                             }) {
-                                Icon(Icons.Filled.Search, contentDescription = "Buscar", tint = orange)
+                                Icon(Icons.Filled.Search, contentDescription = "Buscar", tint = Color(0xFF1D3A58))
                             }
                         },
+
                         colors     = searchBarColors,
                         singleLine = true,
                         modifier   = Modifier
@@ -207,7 +215,8 @@ fun History(
                                     Text(
                                         book.Título,
                                         fontSize = 18.sp,
-                                        color = orange,
+                                        color = Color(0xFF1D3A58),
+                                        fontWeight = FontWeight.Medium,
                                         textDecoration = TextDecoration.None,
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -239,11 +248,8 @@ fun History(
                     }
             ) {
                 if (selectedBook == null) {
-                    Image(
-                        painter = painterResource(R.drawable.historiallibrocerrado),
-                        contentDescription = "Fondo Historial vacío",
-                        modifier = Modifier.fillMaxSize().height(150.dp),
-                        contentScale = ContentScale.Fit
+                    EmptyHistoryAnimation(
+                        modifier = Modifier.align(Alignment.Center)
                     )
                 }
                 Column {
@@ -329,19 +335,21 @@ fun History(
                                     }
                                     // Título del diálogo
                                     Box(
-                                        Modifier
+                                        modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(48.dp)
-                                            .background(titleBackground),
+                                            .background(titleBackground)
+                                            .padding(vertical = 12.dp, horizontal = 16.dp),  // dejamos padding en vez de height fijo
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
-                                            book.Título,
-                                            fontSize   = 28.sp,
+                                            text = book.Título,
+                                            fontSize = 24.sp,                                 // un pelín más pequeño
                                             fontWeight = FontWeight.Bold,
-                                            color      = Color.White,
-                                            textAlign  = TextAlign.Center,
-                                            modifier   = Modifier.padding(horizontal = 16.dp)
+                                            color = Color.White,
+                                            textAlign = TextAlign.Center,
+                                            maxLines = 2,                                     // máximo dos líneas
+                                            overflow = TextOverflow.Ellipsis,                 // con "..." si se pasa
+                                            modifier = Modifier.fillMaxWidth()
                                         )
                                     }
                                     // Contenido del diálogo
@@ -450,4 +458,139 @@ fun History(
             }
         }
     }
+}
+
+@Composable
+fun EmptyHistoryAnimation(modifier: Modifier = Modifier) {
+    // 1) Carga tu animación desde raw/empty_history_books.json
+    val composition by rememberLottieComposition(
+        LottieCompositionSpec.RawRes(R.raw.empty_history_books)
+    )
+    // 2) Hazla iterar infinitamente
+    val progress by animateLottieCompositionAsState(
+        composition,
+        iterations = LottieConstants.IterateForever
+    )
+    // 3) Muestra la animación
+    LottieAnimation(
+        composition = composition,
+        progress = progress,
+        modifier = modifier
+            .fillMaxWidth()
+            .height(350.dp)
+            .padding(16.dp)
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BookDialogH(
+    initial: Book?,
+    onConfirm: (Book) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var titulo     by remember { mutableStateOf(initial?.Título.orEmpty()) }
+    var autor      by remember { mutableStateOf(initial?.Autor.orEmpty()) }
+    var año        by remember { mutableStateOf(initial?.Año?.toString().orEmpty()) }
+    var sinopsis   by remember { mutableStateOf(initial?.Sinopsis.orEmpty()) }
+    var categoria  by remember { mutableStateOf(initial?.Categoría_ID?.toString().orEmpty()) }
+    var estado     by remember { mutableStateOf(initial?.Estado.orEmpty()) }
+    var fecha      by remember { mutableStateOf(initial?.Fecha.orEmpty()) }
+    var estanteria by remember { mutableStateOf(initial?.Estanteria_ID?.toString().orEmpty()) }
+
+    val isFormValid by remember{
+        derivedStateOf {
+            titulo.isNotBlank() &&
+                    autor.isNotBlank() &&
+                    año.toIntOrNull() != null &&
+                    sinopsis.isNotBlank() &&
+                    categoria.toIntOrNull() != null &&
+                    estado.isNotBlank() &&
+                    estanteria.toIntOrNull() != null
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(text = if (initial == null) "Crear libro" else "Editar libro")
+        },
+        text = {
+            Column(Modifier.fillMaxWidth()) {
+                OutlinedTextField(
+                    value = titulo, onValueChange = { titulo = it },
+                    label = { Text("Título") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = autor, onValueChange = { autor = it },
+                    label = { Text("Autor") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = año, onValueChange = { año = it },
+                    label = { Text("Año") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = sinopsis, onValueChange = { sinopsis = it },
+                    label = { Text("Sinopsis") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = categoria, onValueChange = { categoria = it },
+                    label = { Text("Categoría_ID") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = estado, onValueChange = { estado = it },
+                    label = { Text("Estado") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = fecha, onValueChange = { fecha = it },
+                    label = { Text("Fecha") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = estanteria, onValueChange = { estanteria = it },
+                    label = { Text("Estanteria_ID") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val book = Book(
+                        ID             = initial?.ID ?: 0,
+                        Título         = titulo,
+                        Autor          = autor,
+                        Año            = año.toInt(),
+                        Sinopsis       = sinopsis,
+                        Categoría_ID   = categoria.toInt(),
+                        Estado         = estado,
+                        Fecha          = fecha,
+                        Estanteria_ID  = estanteria.toInt()
+                    )
+                    onConfirm(book)
+                },
+                enabled = isFormValid
+            ) {
+                Text("OK")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
 }
