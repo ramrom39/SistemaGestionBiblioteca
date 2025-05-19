@@ -16,6 +16,7 @@ import com.example.sistemagestionbiblioteca.data.users.User
 import com.example.sistemagestionbiblioteca.data.users.UserRegister
 import com.example.sistemagestionbiblioteca.data.users.UserLogin
 import com.example.sistemagestionbiblioteca.data.users.UserNameResponse
+import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -29,6 +30,11 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 
 interface ApiService {
 
@@ -36,12 +42,40 @@ interface ApiService {
         // Cambia localhost por la IP del host si usas un emulador (ej. 10.0.2.2)
         private const val BASE_URL =
             "https://ramonromerodev.alumnosatlantida.es/APIBIBLIOTECA/controller/"
+        private const val API_KEY = "eb904f62-1445-4eb6-a9ff-9e497af1a512"
         private var apiService: ApiService? = null
 
         fun getInstance(): ApiService {
             if (apiService == null) {
+                // 1) TrustManager que no valida nada
+                val trustAll = arrayOf<TrustManager>(
+                    object : X509TrustManager {
+                        override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
+                        override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
+                        override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
+                    }
+                )
+                val sc = SSLContext.getInstance("SSL").apply {
+                    init(null, trustAll, SecureRandom())
+                }
+                val socketFactory = sc.socketFactory
+
+                // 2) OkHttpClient “inseguro”
+                val client = OkHttpClient.Builder()
+                    .sslSocketFactory(socketFactory, trustAll[0] as X509TrustManager)
+                    .hostnameVerifier { _, _ -> true }
+                    .addInterceptor { chain ->
+                        val newReq = chain.request().newBuilder()
+                            .addHeader("Authorization", "Bearer $API_KEY")
+                            .build()
+                        chain.proceed(newReq)
+                    }
+                    .build()
+
+                // 3) Retrofit
                 apiService = Retrofit.Builder()
                     .baseUrl(BASE_URL)
+                    .client(client)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build()
                     .create(ApiService::class.java)
