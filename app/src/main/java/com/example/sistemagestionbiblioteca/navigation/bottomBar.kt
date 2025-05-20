@@ -30,14 +30,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+/**
+ * Barra de navegación inferior (BottomBar) que muestra los íconos de Inicio, Historial y Biblioteca.
+ *
+ * Se muestra únicamente en las rutas Home, History y Shelves, y permite la navegación
+ * parametrizada con el ID de usuario actual.
+ *
+ * @param navController Controlador de navegación de Jetpack Compose.
+ * @param currentUserId ID del usuario autenticado, usado para construir las rutas.
+ */
 
 @Composable
 fun BottomBar(navController: NavController,currentUserId: Int) {
-    // Observa los cambios en la navegación.
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Rutas en las que se muestra la BottomBar.
+
     val visibleRoutes = listOf(
         AppScreens.Home.route,
         AppScreens.History.route,
@@ -45,15 +54,15 @@ fun BottomBar(navController: NavController,currentUserId: Int) {
     )
     if (currentRoute !in visibleRoutes) return
 
-    // Gradiente vertical para el fondo de la BottomBar:
+
     val gradientBrush = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFFE3B47B),  // Color superior
-            Color(0xFFF8B75E)   // Color inferior
+            Color(0xFFE3B47B),
+            Color(0xFFF8B75E)
         )
     )
 
-    // Envolvemos la BottomAppBar en una Surface con esquinas redondeadas.
+
     androidx.compose.material3.Surface(
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
         modifier = Modifier.fillMaxWidth(),
@@ -64,7 +73,7 @@ fun BottomBar(navController: NavController,currentUserId: Int) {
             modifier = Modifier
                 .fillMaxWidth()
                 .drawBehind {
-                    // Convertimos 16.dp a pixeles para el radio de esquina.
+
                     val radius = 16.dp.toPx()
                     drawRoundRect(
                         brush = gradientBrush,
@@ -111,7 +120,7 @@ fun BottomBar(navController: NavController,currentUserId: Int) {
                 )
             )
 
-            // Ítem para Historial.
+
             NavigationBarItem(
                 icon = {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -147,7 +156,7 @@ fun BottomBar(navController: NavController,currentUserId: Int) {
                 )
             )
 
-            // Ítem para Biblioteca.
+
             NavigationBarItem(
                 icon = {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {

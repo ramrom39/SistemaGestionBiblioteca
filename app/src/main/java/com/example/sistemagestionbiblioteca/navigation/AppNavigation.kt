@@ -40,7 +40,12 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 
-
+/**
+ * Configura la navegación principal de la aplicación usando Jetpack Compose Navigation.
+ *
+ * Define las rutas para las pantallas de Login, Registro, Home, Historial y Estanterías,
+ * incluyendo los argumentos necesarios (userId) en las rutas parametrizadas.
+ */
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun AppNavigation() {
@@ -56,7 +61,7 @@ fun AppNavigation() {
         composable(AppScreens.Register.route) {
             Register(navController)
         }
-        // Home ya estaba parametrizado:
+
         composable(
             route = AppScreens.Home.route,               // "home/{userId}"
             arguments = listOf(navArgument("userId") {
@@ -66,7 +71,6 @@ fun AppNavigation() {
             Home(navController, back.arguments!!.getInt("userId"))
         }
 
-        // History parametrizado
         composable(
             route = "history/{userId}",
             arguments = listOf(navArgument("userId") {
@@ -76,7 +80,6 @@ fun AppNavigation() {
             History(navController, back.arguments!!.getInt("userId"))
         }
 
-        // Shelves parametrizado
         composable(
             route = "shelves/{userId}",
             arguments = listOf(navArgument("userId") {

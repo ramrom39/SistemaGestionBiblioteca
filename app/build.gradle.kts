@@ -70,7 +70,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    implementation ("com.airbnb.android:lottie-compose:6.1.0")
+    implementation("com.airbnb.android:lottie-compose:6.1.0")
     implementation("androidx.compose.material3:material3:1.3.1-beta02")
     implementation("androidx.navigation:navigation-compose:2.8.5")
     implementation("com.google.accompanist:accompanist-navigation-animation:0.31.0-alpha")
@@ -89,4 +89,6 @@ dependencies {
     implementation ("com.google.accompanist:accompanist-placeholder-material:0.32.0")
     implementation ("com.google.accompanist:accompanist-swiperefresh:0.32.0")
 
+
+    compileOnly("org.jetbrains.dokka:dokka-core:2.0.0")
 }

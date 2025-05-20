@@ -13,13 +13,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-
+/**
+ * Composable que muestra una barra superior personalizada con título y acción de cierre de sesión.
+ *
+ * @param navController Controlador de navegación para manejar la acción de cerrar sesión.
+ * @param title Texto a mostrar como título de la barra.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTopBar(navController: NavController,title: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = Color(0xFFF8B75E) // Color de fondo, ajusta a tu estilo
+        color = Color(0xFFF8B75E)
         ,
     ) {
         TopAppBar(
@@ -27,7 +32,6 @@ fun CustomTopBar(navController: NavController,title: String) {
             actions = {
                 TextButton(
                     onClick = {
-                        // Navega a Login y limpia el back stack de Home para cerrar sesión
                         navController.navigate(AppScreens.Login.route) {
                             popUpTo(AppScreens.Home.route) { inclusive = true }
                         }

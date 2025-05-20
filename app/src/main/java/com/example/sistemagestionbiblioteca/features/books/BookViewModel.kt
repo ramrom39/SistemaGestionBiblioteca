@@ -14,13 +14,30 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
+/**
+ * ViewModel encargado de gestionar las operaciones CRUD de libros y el estado de la UI.
+ *
+ * @property books Lista de libros obtenida de la API como LiveData.
+ * @property statusMessage Mensaje de estado o error para mostrar en la UI.
+ */
 class BookViewModel : ViewModel() {
     private val _books = MutableLiveData<List<Book>>()
+
+    /**
+     * LiveData público con la lista de libros.
+     */
     val books: LiveData<List<Book>> = _books
 
     private val _statusMessage = MutableLiveData<String?>()
+
+    /**
+     * LiveData público con mensajes de estado o error.
+     */
     val statusMessage: LiveData<String?> = _statusMessage
 
+    /**
+     * Recupera todos los libros desde la API y actualiza `books` o `statusMessage`.
+     */
     fun fetchBooks() {
         ApiService.getInstance().getBooks().enqueue(object: Callback<List<Book>> {
             override fun onResponse(c: Call<List<Book>>, r: Response<List<Book>>) {
@@ -32,7 +49,11 @@ class BookViewModel : ViewModel() {
             }
         })
     }
-
+    /**
+     * Envía una petición para crear un nuevo libro y refresca la lista en caso de éxito.
+     *
+     * @param r Datos para crear el libro.
+     */
     fun createBook(r: BookCreateRequest) {
         ApiService.getInstance().createBook(r)
             .enqueue(object: Callback<BookResponse> {
@@ -49,7 +70,12 @@ class BookViewModel : ViewModel() {
                 }
             })
     }
-    // com/example/sistemagestionbiblioteca/features/books/BookViewModel.kt
+    /**
+     * Envía una petición para actualizar un libro existente y refresca la lista en caso de éxito.
+     *
+     * @param book Libro con datos actuales.
+     * @param userId ID del usuario que realiza la modificación.
+     */
     fun updateBook(book: Book, userId: Int) {
         val req = BookUpdateRequest(
             titulo              = book.Título,
@@ -80,7 +106,11 @@ class BookViewModel : ViewModel() {
             })
     }
 
-
+    /**
+     * Envía una petición para eliminar un libro por su ID y refresca la lista en caso de éxito.
+     *
+     * @param id ID del libro a eliminar.
+     */
     fun deleteBook(id: Int) {
         ApiService.getInstance().deleteBook(id)
             .enqueue(object: Callback<BookResponse> {
@@ -97,6 +127,9 @@ class BookViewModel : ViewModel() {
                 }
             })
     }
+    /**
+     * Limpia el mensaje de estado para no mostrar nada.
+     */
     fun clearStatusMessage() {
         _statusMessage.value = null
     }

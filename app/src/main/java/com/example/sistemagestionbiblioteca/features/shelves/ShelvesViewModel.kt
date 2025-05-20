@@ -15,24 +15,43 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import android.util.Log
-
+/**
+ * ViewModel que gestiona la carga de estanterías y los libros asociados,
+ * exponiendo flujos para la UI y proporcionando operaciones de borrado.
+ *
+ * @property api Cliente de la API para solicitudes de datos.
+ * @property isLoading Indica si se está cargando información.
+ * @property shelves Lista de estanterías obtenida desde la API.
+ * @property booksByShelf Mapa de ID de estantería a lista de libros.
+ */
 class ShelvesViewModel(
     private val api: ApiService
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
+    /**
+     * Flujo que indica el estado de carga de datos.
+     */
     val isLoading: StateFlow<Boolean> = _isLoading
 
     private val _shelves = MutableStateFlow<List<Shelf>>(emptyList())
+    /**
+     * Flujo con la lista de estanterías disponibles.
+     */
     val shelves: StateFlow<List<Shelf>> = _shelves
 
     private val _booksByShelf = MutableStateFlow<Map<Int, List<Book>>>(emptyMap())
+    /**
+     * Flujo que mapea cada estantería a sus libros.
+     */
     val booksByShelf: StateFlow<Map<Int, List<Book>>> = _booksByShelf
 
     init {
         refresh()
     }
-
+    /**
+     * Refresca la lista de estanterías y sus libros.
+     */
     fun refresh() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -40,7 +59,10 @@ class ShelvesViewModel(
             _isLoading.value = false
         }
     }
-
+    /**
+     * Solicita de forma secuencial las estanterías y luego los libros por estantería.
+     * Actualiza los flujos correspondientes.
+     */
     private suspend fun fetchShelvesAndBooks() {
         val shelvesResponse = api.getShelves()
         if (shelvesResponse.isSuccessful) {
@@ -58,7 +80,10 @@ class ShelvesViewModel(
     }
 
     /**
-     * Borra un libro en la API y actualiza localmente sin refrescar.
+     * Borra un libro en la API y actualiza el flujo local de libros sin recargar todo.
+     *
+     * @param shelfId ID de la estantería a la que pertenece el libro.
+     * @param book Instancia de Book a eliminar.
      */
     fun deleteBook(shelfId: Int, book: Book) {
         val call: Call<BookResponse> = api.deleteBook(book.ID)

@@ -11,8 +11,17 @@ import com.example.sistemagestionbiblioteca.network.ApiService
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+
+/**
+ * ViewModel encargado de gestionar el proceso de inicio de sesión de usuarios.
+ *
+ * @property loginResponse LiveData con el mensaje devuelto por la API tras intentar iniciar sesión.
+ * @property errorMessage  LiveData con el mensaje de error en caso de fallo en la petición o credenciales incorrectas.
+ * @property userId        LiveData con el ID del usuario autenticado, si el inicio de sesión es exitoso.
+ */
+
 class LoginViewModel : ViewModel() {
-    // Permitimos valores nulos para forzar re-emisión
+
     private val _loginResponse = MutableLiveData<String?>()
     val loginResponse: LiveData<String?> = _loginResponse
 
@@ -21,14 +30,20 @@ class LoginViewModel : ViewModel() {
 
     private val _userId = MutableLiveData<Int?>()
     val userId: LiveData<Int?> = _userId
-
+    /**
+     * Realiza la solicitud de inicio de sesión usando el nombre de usuario y la contraseña proporcionados.
+     * Al limpiarse previamente los valores, garantiza que LiveData emita un nuevo estado.
+     *
+     * @param username Nombre de usuario para autenticar.
+     * @param password Contraseña asociada al usuario.
+     */
     fun loginUser(username: String, password: String) {
-        // 1) Limpiamos valores anteriores
+
         _loginResponse.value = null
         _errorMessage.value  = null
         _userId.value        = null
 
-        // 2) Lanzamos la petición
+
         ApiService.getInstance()
             .loginUser(UserLogin(username, password))
             .enqueue(object: Callback<LoginResponse> {

@@ -21,31 +21,62 @@ import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-
+/**
+ * ViewModel para gestionar la búsqueda de libros, la selección de un libro,
+ * la obtención de su historial de acciones y los nombres de usuario asociados.
+ *
+ * Expone flujos para la consulta, sugerencias, datos seleccionados y eventos UI.
+ */
 class HistoryViewModel : ViewModel() {
+    /**
+     * Cadena de búsqueda actual. Al cambiar, reinicia selección y datos relacionados.
+     */
     var searchQuery = MutableStateFlow("")
         private set
 
     private val _uiEvents = MutableSharedFlow<String>()
+    /**
+     * Flujo de eventos de UI (mensajes de éxito/error) para la vista.
+     */
     val uiEvents = _uiEvents.asSharedFlow()
 
     private val _suggestions  = MutableStateFlow<List<Book>>(emptyList())
+    /**
+     * Sugerencias de libros basadas en la búsqueda parcial.
+     */
     val suggestions: StateFlow<List<Book>> = _suggestions
 
     private val _selectedBook = MutableStateFlow<Book?>(null)
+    /**
+     * Libro seleccionado tras búsqueda exacta.
+     */
     val selectedBook: StateFlow<Book?> = _selectedBook
 
     private val _categoryName = MutableStateFlow("")
+    /**
+     * Nombre de la categoría del libro seleccionado.
+     */
     val categoryName: StateFlow<String> = _categoryName
 
     private val _historyList  = MutableStateFlow<List<History>>(emptyList())
+    /**
+     * Historial de acciones (préstamos, devoluciones) del libro seleccionado.
+     */
     val historyList: StateFlow<List<History>> = _historyList
 
     private val _userNames    = MutableStateFlow<Map<Int, String>>(emptyMap())
+    /**
+     * Mapa de IDs de usuario a nombres, utilizado para mostrar quién realizó cada acción.
+     */
     val userNames: StateFlow<Map<Int, String>> = _userNames
 
     private val api = ApiService.getInstance()
-
+    /**
+     * Actualiza la consulta de búsqueda y obtiene sugerencias filtradas
+     * por título de libro que contenga la cadena.
+     *
+     * @param query Texto ingresado por el usuario.
+     */
     fun onSearchQueryChanged(query: String) {
         searchQuery.value    = query
         _selectedBook.value  = null
@@ -67,7 +98,10 @@ class HistoryViewModel : ViewModel() {
             }
         })
     }
-
+    /**
+     * Ejecuta la búsqueda exacta de libro y, si se encuentra,
+     * carga su categoría y su historial con nombres de usuario.
+     */
     fun onSearchButtonClicked() {
         api.getBooks().enqueue(object : Callback<List<Book>> {
             override fun onResponse(call: Call<List<Book>>, response: Response<List<Book>>) {
@@ -90,7 +124,12 @@ class HistoryViewModel : ViewModel() {
             }
         })
     }
-
+    /**
+     * Selecciona un libro de la lista de sugerencias y carga
+     * su categoría e historial de acciones.
+     *
+     * @param book Libro elegido por el usuario.
+     */
     fun onBookSelected(book: Book) {
         // Exactamente el mismo flujo que onSearchButtonClicked
         searchQuery.value    = book.Título
@@ -99,7 +138,12 @@ class HistoryViewModel : ViewModel() {
         fetchCategoryName(book.Categoría_ID)
         loadHistoryAndUserNames(book.ID)
     }
-
+    /**
+     * Carga en paralelo el historial de un libro y obtiene los nombres
+     * de usuario que realizaron cada acción.
+     *
+     * @param bookId ID del libro cuyo historial se quiere recuperar.
+     */
     private fun loadHistoryAndUserNames(bookId: Int) {
         viewModelScope.launch {
             val history = try {
@@ -122,7 +166,11 @@ class HistoryViewModel : ViewModel() {
             _userNames.value = map
         }
     }
-
+    /**
+     * Recupera el nombre de la categoría dada su ID.
+     *
+     * @param categoryId ID de la categoría a buscar.
+     */
     private fun fetchCategoryName(categoryId: Int) {
         api.getCategories().enqueue(object : Callback<List<Category>> {
             override fun onResponse(call: Call<List<Category>>, response: Response<List<Category>>) {
@@ -136,7 +184,13 @@ class HistoryViewModel : ViewModel() {
             }
         })
     }
-
+    /**
+     * Envía una petición para actualizar los datos de un libro y,
+     * al confirmar éxito, recarga su detalle e historial y emite un evento.
+     *
+     * @param book Objeto con datos actuales del libro.
+     * @param userId ID del usuario que realiza la actualización.
+     */
     fun updateBook(book: Book, userId: Int) {
         val req = BookUpdateRequest(
             titulo             = book.Título,
@@ -179,13 +233,17 @@ class HistoryViewModel : ViewModel() {
                 }
             })
     }
-
+    /**
+     * Limpia todos los datos (historial, categoría y nombres) de la vista.
+     */
     private fun clearAllData() {
         _historyList.value   = emptyList()
         _categoryName.value  = ""
         _userNames.value     = emptyMap()
     }
-
+    /**
+     * Limpia las sugerencias de búsqueda.
+     */
     fun clearSuggestions() {
         _suggestions.value = emptyList()
     }
