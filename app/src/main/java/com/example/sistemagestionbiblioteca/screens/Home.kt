@@ -48,7 +48,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import coil.compose.rememberAsyncImagePainter
 import com.example.sistemagestionbiblioteca.data.books.BookCreateRequest
-
+/**
+ * Pantalla principal donde se muestran categorías y novedades (libros).
+ *
+ * Permite crear y editar categorías y libros, mostrar listas en LazyRow,
+ * y gestiona el estado mediante [CategoryViewModel] y [BookViewModel].
+ *
+ * @param navController Controlador de navegación para cambiar entre pantallas.
+ * @param currentUserId ID del usuario autenticado, usado para rutas parametrizadas.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Home(navController: NavController,currentUserId: Int) {
@@ -57,7 +65,6 @@ fun Home(navController: NavController,currentUserId: Int) {
     val focusManager = LocalFocusManager.current
     val scroll = rememberScrollState()
     val categoryBgRes = R.drawable.fotocategoria
-    // ViewModels
     val catVm: CategoryViewModel = viewModel()
     val categories by catVm.categories.observeAsState(emptyList())
     val catError  by catVm.error.observeAsState()
@@ -69,7 +76,6 @@ fun Home(navController: NavController,currentUserId: Int) {
 
     var showEditBookDialog by remember { mutableStateOf(false) }
     var bookToEdit        by remember { mutableStateOf<Book?>(null) }
-    // Estados para creación de categoría
 
     var showCreateCat by remember { mutableStateOf(false) }
     var newCatName   by remember { mutableStateOf("") }
@@ -82,21 +88,18 @@ fun Home(navController: NavController,currentUserId: Int) {
 
     val catStatusMsg by catVm.statusMessage.observeAsState()
 
-    // Toast para categoría
     LaunchedEffect(catStatusMsg) {
         catStatusMsg?.let { msg ->
             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
             catVm.clearStatusMessage()
         }
     }
-    // Toast cada vez que cambie statusMsg
     LaunchedEffect(statusMsg) {
         statusMsg?.let { msg ->
             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
             bookVm.clearStatusMessage()
         }
     }
-    // Carga inicial
     LaunchedEffect(Unit) {
 
         catVm.fetchCategories()
@@ -112,7 +115,7 @@ fun Home(navController: NavController,currentUserId: Int) {
             Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
-                .verticalScroll(scroll)       // <-- esto habilita el scroll
+                .verticalScroll(scroll)
                 .background(
                     Brush.radialGradient(
                         listOf(Color(0xFFF6E6CA), Color(0xFFF5EADA)),
@@ -135,7 +138,6 @@ fun Home(navController: NavController,currentUserId: Int) {
                 Spacer(Modifier.height(40.dp))
 
                 Column(Modifier.padding(16.dp)) {
-                    // --- HEADER CATEGORÍAS ---
                     Row(
                         Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -165,7 +167,7 @@ fun Home(navController: NavController,currentUserId: Int) {
                             .padding(vertical = 8.dp)
                     )
                     Spacer(Modifier.height(30.dp))
-                    // DIÁLOGO CREAR CATEGORÍA
+
                     if (showCreateCat) {
                         AlertDialog(
                             onDismissRequest = { showCreateCat = false },
@@ -198,7 +200,7 @@ fun Home(navController: NavController,currentUserId: Int) {
                                         newCatDesc = ""
                                         showCreateCat = false
                                     },
-                                    enabled = isCreateCatEnabled        // <— aquí
+                                    enabled = isCreateCatEnabled
                                 ) {
                                     Text("OK")
                                 }
@@ -210,20 +212,18 @@ fun Home(navController: NavController,currentUserId: Int) {
                         Spacer(Modifier.height(25.dp))
                     }
 
-                    // --- LAZYROW CATEGORÍAS ---
                     LazyRow(
                         contentPadding = PaddingValues(horizontal = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(
                             items = categories,
-                            key = { it.id }    // ← key única por categoría
+                            key = { it.id }
                         ) { cat ->
                             CategoryCard(
                                 category      = cat,
                                 backgroundRes = categoryBgRes,
                                 onDelete      = {
-                                    // Debug: verifica que el onClick llega
                                     Toast.makeText(context, "Borrando “${cat.nombre}”", Toast.LENGTH_SHORT).show()
                                     catVm.deleteCategory(cat.id)
                                 },
@@ -248,7 +248,6 @@ fun Home(navController: NavController,currentUserId: Int) {
                             .padding(vertical = 16.dp)
                             .clip(RoundedCornerShape(12.dp))
                     )
-                    // --- NOVEDEDADES (LIBROS) ---
                     Spacer(Modifier.height(24.dp))
                     Row(
                         Modifier.fillMaxWidth(),
@@ -333,7 +332,15 @@ fun Home(navController: NavController,currentUserId: Int) {
     }
 }
 
-
+/**
+ * Composable que muestra una tarjeta de categoría con su nombre y descripción,
+ * y proporciona botones para borrar o editar la categoría.
+ *
+ * @param category      Objeto [Category] con los datos de la categoría.
+ * @param backgroundRes Recurso drawable usado como imagen de fondo.
+ * @param onDelete      Lambda llamada al pulsar el botón de eliminar.
+ * @param onUpdate      Lambda llamada al confirmar la edición (nombre, descripción).
+ */
 @Composable
 fun CategoryCard(
     category: Category,
@@ -354,7 +361,7 @@ fun CategoryCard(
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Fondo de la categoría
+
             Image(
                 painter = painterResource(backgroundRes),
                 contentDescription = null,
@@ -364,7 +371,6 @@ fun CategoryCard(
                     .clip(RoundedCornerShape(16.dp))
             )
 
-            // Pequeño contenedor en la parte inferior para título y descripción
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -396,7 +402,6 @@ fun CategoryCard(
                 }
             }
 
-            // Botones de acción en esquina superior derecha
             Row(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -466,6 +471,14 @@ fun CategoryCard(
     }
 }
 
+/**
+ * Composable que muestra una tarjeta de libro con imagen, título y autor,
+ * y ofrece acciones para borrar o editar dicho libro.
+ *
+ * @param book     Objeto [Book] cuyos datos se muestran.
+ * @param onDelete Lambda llamada al pulsar el botón de eliminar.
+ * @param onEdit   Lambda llamada al pulsar el botón de editar.
+ */
 @Composable
 fun BookCard(
     book: Book,
@@ -474,7 +487,7 @@ fun BookCard(
 ) {
     Card(
         modifier = Modifier
-            .padding(8.dp) // Espacio exterior para sombra
+            .padding(8.dp)
             .shadow(8.dp, RoundedCornerShape(12.dp))
             .width(250.dp)
             .height(300.dp),
@@ -482,7 +495,7 @@ fun BookCard(
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Imagen de fondo ocupando toda la carta
+
             Image(
                 painter = rememberAsyncImagePainter(R.drawable.librocerrado),
                 contentDescription = null,
@@ -491,8 +504,6 @@ fun BookCard(
                     .matchParentSize()
                     .clip(RoundedCornerShape(12.dp))
             )
-
-            // Etiqueta blanca en la parte inferior
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -524,7 +535,6 @@ fun BookCard(
                 }
             }
 
-            // Botones arriba a la derecha
             Row(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -553,6 +563,14 @@ fun BookCard(
         }
     }
 }
+/**
+ * Diálogo para crear o editar un libro, con campos para todos sus atributos.
+ * Valida la entrada y habilita el botón "OK" solo si todos los campos son válidos.
+ *
+ * @param initial   Objeto [Book] existente para editar, o `null` para crear uno nuevo.
+ * @param onConfirm Lambda que recibe el [Book] con los datos introducidos al confirmar.
+ * @param onDismiss Lambda llamada al descartar el diálogo sin guardar.
+ */
 @Composable
 private fun BookDialog(
     initial: Book?,

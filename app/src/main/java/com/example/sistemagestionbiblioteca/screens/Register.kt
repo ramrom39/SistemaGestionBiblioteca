@@ -54,6 +54,16 @@ import com.example.sistemagestionbiblioteca.data.users.UserRegister
 import com.example.sistemagestionbiblioteca.navigation.AppScreens
 import com.example.sistemagestionbiblioteca.viewmodel.RegisterViewModel
 import kotlinx.coroutines.delay
+
+/**
+ * Pantalla de registro donde el usuario puede crear una nueva cuenta.
+ *
+ * Muestra campos para nombre, apellidos, usuario, correo y contraseña (con validación
+ * de formato y asteriscos en caso de error), botones para generar/copy contraseña,
+ * y gestiona la lógica a través de [RegisterViewModel].
+ *
+ * @param navController Controlador de navegación para moverse entre pantallas.
+ */
 @Composable
 fun Register(navController: NavController) {
     val focusManager = LocalFocusManager.current
@@ -372,11 +382,16 @@ fun Register(navController: NavController) {
 }
 
 /**
- * Composable para el campo de contraseña con funcionalidades:
- * - Alternar entre ver/ocultar contraseña.
- * - Copiar contraseña al portapapeles.
- * - Generar una contraseña aleatoria (activo sólo si el campo está vacío).
- * Además, muestra un asterisco en el label si el campo está vacío y se ha intentado enviar.
+ * Campo de contraseña con opciones para:
+ * - Mostrar u ocultar la contraseña.
+ * - Copiarla al portapapeles.
+ * - Generar una contraseña aleatoria (solo si está vacío).
+ * Muestra un asterisco en el label si `showError` es true y el campo está vacío.
+ *
+ * @param password            Valor actual de la contraseña.
+ * @param onPasswordChange    Callback al modificar el texto de la contraseña.
+ * @param onGeneratePassword  Callback para generar una nueva contraseña aleatoria.
+ * @param showError           Indicador de mostrar asterisco de validación.
  */
 @Composable
 fun PasswordTextField(
@@ -443,7 +458,11 @@ fun PasswordTextField(
 }
 
 /**
- * Función para generar una contraseña aleatoria.
+ * Genera una contraseña aleatoria de longitud especificada,
+ * combinando letras mayúsculas, minúsculas, dígitos y símbolos.
+ *
+ * @param length Longitud deseada de la contraseña (por defecto, 12).
+ * @return Cadena aleatoria de la longitud indicada.
  */
 fun generateRandomPassword(length: Int = 12): String {
     val characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#%^&*()"
@@ -453,7 +472,11 @@ fun generateRandomPassword(length: Int = 12): String {
 }
 
 /**
- * Función para validar el formato de un email.
+ * Valida que un email tenga un formato correcto según el patrón:
+ *  texto@dominio.extension (2–6 letras para la extensión).
+ *
+ * @param email Cadena a validar como correo electrónico.
+ * @return `true` si el email coincide con el patrón, `false` en caso contrario.
  */
 fun validarEmail(email: String): Boolean {
     val regex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$".toRegex()

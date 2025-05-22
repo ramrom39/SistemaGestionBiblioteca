@@ -1,8 +1,9 @@
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("com.google.devtools.ksp")
-    id("org.jetbrains.dokka")
+    id("org.jetbrains.dokka") version "2.0.0"
 }
 
 android {
@@ -86,9 +87,26 @@ dependencies {
 
 
     implementation("io.coil-kt:coil-compose:2.4.0")
-    implementation ("com.google.accompanist:accompanist-placeholder-material:0.32.0")
-    implementation ("com.google.accompanist:accompanist-swiperefresh:0.32.0")
+    implementation("com.google.accompanist:accompanist-placeholder-material:0.32.0")
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.32.0")
 
-
-    compileOnly("org.jetbrains.dokka:dokka-core:2.0.0")
 }
+
+//// Configuración de Dokka V2
+//tasks.named<org.jetbrains.dokka.gradle.DokkaTaskPartial>("dokkaHtml") {
+//    outputDirectory.set(buildDir.resolve("dokka/html"))
+//    moduleName.set("SistemaGestionBiblioteca")
+//
+//    dokkaSourceSets {
+//        named("main") {
+//            // Raíces de código Kotlin y Java
+//            kotlinSourceRoots.from(file("src/main/kotlin"))
+//            sourceRoots.from(file("src/main/java"))
+//
+//            // Ajustes opcionales
+//            skipEmptyPackages.set(true)
+//            reportUndocumented.set(false)
+//            perPackageOption { matchingRegex.set(".*") ; includeNonPublic.set(false) }
+//        }
+//    }
+

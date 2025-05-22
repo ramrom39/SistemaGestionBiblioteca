@@ -4,6 +4,7 @@ accompanist = "0.32.0"
 accompanistSystemuicontroller = "<latest-version>"
 accompanistSystemuicontrollerVersion = "0.31.4-beta"
 agp = "8.6.0"
+dokkaGradlePlugin = "2.0.0"
 kotlin = "1.9.0"
 coreKtx = "1.15.0"
 junit = "4.13.2"
@@ -22,6 +23,7 @@ runtimeLivedata = "1.7.8"
 accompanist-swiperefresh = { module = "com.google.accompanist:accompanist-swiperefresh", version = "0.32.0" }
 accompanist-systemuicontroller-vlatestversion = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokkaGradlePlugin" }
 google-accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontrollerVersion" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

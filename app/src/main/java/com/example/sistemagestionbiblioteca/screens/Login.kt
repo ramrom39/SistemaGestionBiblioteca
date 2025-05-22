@@ -1,5 +1,14 @@
 package com.example.sistemagestionbiblioteca.screens
 
+/**
+ * Pantalla de inicio de sesión donde el usuario ingresa sus credenciales.
+ *
+ * Muestra campos para correo/usuario y contraseña (con opción de mostrar/ocultar),
+ * un botón para iniciar sesión y navega a Home en caso de éxito.
+ * Gestiona estados de carga y muestra animaciones Lottie mientras espera respuesta.
+ *
+ * @param navController Controlador de navegación para mover entre pantallas.
+ */
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -54,13 +63,13 @@ fun Login(navController: NavController) {
     var password     by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
     var isLoading    by remember { mutableStateOf(false) }
-    val scope        = rememberCoroutineScope()
 
-    // Cargamos Lottie
+
+
     val loadComp by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading))
     val loadProg by animateLottieCompositionAsState(loadComp, iterations = LottieConstants.IterateForever)
 
-    // Observamos errores y éxito para resetear isLoading y mostrar Toast
+
     LaunchedEffect(loginMsg, errorMessage) {
         if (!isLoading) return@LaunchedEffect
 
@@ -86,7 +95,7 @@ fun Login(navController: NavController) {
                 .pointerInput(Unit) { detectTapGestures { focusManager.clearFocus() } },
             contentAlignment = Alignment.Center
         ) {
-            // Fondo mitad naranja / mitad blanco
+
             Image(
                 painter            = painterResource(R.drawable.orange_white_background),
                 contentDescription = null,
@@ -94,7 +103,6 @@ fun Login(navController: NavController) {
                 contentScale       = ContentScale.Crop
             )
 
-            // Contenedor del formulario
             Box(
                 modifier = Modifier
                     .padding(horizontal = 24.dp)
@@ -179,7 +187,6 @@ fun Login(navController: NavController) {
                 }
             }
 
-            // Overlay de carga
             if (isLoading) {
                 Box(
                     modifier         = Modifier
@@ -194,7 +201,13 @@ fun Login(navController: NavController) {
     }
 }
 
-
+/**
+ * Colores personalizados para los TextField de la pantalla de Login.
+ *
+ * Define los colores para texto, indicadores y cursor en estados enfocado y no enfocado.
+ *
+ * @return Un objeto [TextFieldColors] con la configuración deseada.
+ */
 @Composable
 fun textFieldColors() = TextFieldDefaults.colors(
     unfocusedTextColor      = Color(0xFFDC993F),

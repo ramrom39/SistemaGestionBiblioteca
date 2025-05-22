@@ -17,7 +17,15 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.sistemagestionbiblioteca.navigation.AppNavigation
 import com.example.sistemagestionbiblioteca.ui.theme.SistemaGestionBibliotecaTheme
-
+/**
+ * Actividad principal de la aplicación.
+ *
+ * - Configura edge-to-edge para dibujar tras las barras de sistema.
+ * - Fija la orientación en modo retrato.
+ * - Oculta las barras de navegación con comportamiento transitorio.
+ * - Aplica el tema [SistemaGestionBibliotecaTheme].
+ * - Inicializa la navegación Compose llamando a [AppNavigation].
+ */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

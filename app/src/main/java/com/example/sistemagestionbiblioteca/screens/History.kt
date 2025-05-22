@@ -62,7 +62,17 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
-
+/**
+ * Pantalla de historial donde el usuario puede buscar un libro,
+ * ver sugerencias, seleccionar uno y consultar su historial de acciones.
+ *
+ * Incluye animaciones, diálogos de detalle y edición, y gestiona el estado
+ * mediante un ViewModel.
+ *
+ * @param navController Controlador de navegación para cambiar de pantalla.
+ * @param currentUserId ID del usuario autenticado, usado para rutas parametrizadas.
+ * @param viewModel     Instancia de [HistoryViewModel] para manejar la lógica y datos.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun History(
@@ -107,7 +117,7 @@ fun History(
         disabledLabelColor      = Color(0xFF1D3A58)
     )
 
-    // Animación “pop” al enfocar el campo
+    // Animación “pop”
     val coroutineScope = rememberCoroutineScope()
     var isPressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
@@ -136,7 +146,6 @@ fun History(
                     )
                 )
         ) {
-            // Caja naranja con búsqueda
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -219,7 +228,7 @@ fun History(
                             LazyColumn(modifier = Modifier.padding(vertical = 8.dp)) {
                                 items(suggestions) { book ->
                                     Text(
-                                        book.Título,
+                                        book.ID.toString() + " - "+book.Título,
                                         fontSize = 18.sp,
                                         color    = Color(0xFF1D3A58),
                                         fontWeight = FontWeight.Medium,
@@ -256,7 +265,6 @@ fun History(
                 }
                 Column {
                     selectedBook?.let { book ->
-                        // Tarjeta resumen del libro con botones
                         Box(
                             Modifier
                                 .fillMaxWidth()
@@ -264,10 +272,9 @@ fun History(
                                 // Solo sombra cuando está expandido
                                 .then(if (expanded) Modifier.shadow(8.dp, RoundedCornerShape(12.dp)) else Modifier)
                                 .background(Color.White, RoundedCornerShape(12.dp))
-                                .animateContentSize() // anima sólo el cambio de tamaño
+                                .animateContentSize()
                         ) {
                             Column {
-                                // Header clicable
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -295,7 +302,6 @@ fun History(
                                     )
                                 }
 
-                                // Botones desplegables
                                 AnimatedVisibility(visible = expanded) {
                                     Column {
                                         Row(
@@ -331,7 +337,6 @@ fun History(
                             }
                         }
 
-                        // Detalles en diálogo
                         if (showDialog) {
                             Dialog(
                                 onDismissRequest = {},
@@ -346,7 +351,7 @@ fun History(
                                         .wrapContentHeight()
                                         .background(cardBackground, RoundedCornerShape(12.dp))
                                 ) {
-                                    // Flecha atrás
+
                                     Box(
                                         Modifier
                                             .fillMaxWidth()
@@ -368,7 +373,6 @@ fun History(
                                             )
                                         }
                                     }
-                                    // Título en diálogo
                                     Box(
                                         Modifier
                                             .fillMaxWidth()
@@ -488,6 +492,11 @@ fun History(
     }
 }
 
+/**
+ * Muestra una animación Lottie cuando no hay historial de acciones para el libro seleccionado.
+ *
+ * @param modifier Modificador para personalizar el layout o comportamiento del contenedor.
+ */
 @Composable
 fun EmptyHistoryAnimation(modifier: Modifier = Modifier) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.empty_history_books))
@@ -501,7 +510,16 @@ fun EmptyHistoryAnimation(modifier: Modifier = Modifier) {
             .padding(16.dp)
     )
 }
-
+/**
+ * Diálogo para crear o editar un libro desde la pantalla de historial.
+ *
+ * Genera un formulario con campos para todos los atributos de [Book] y botones
+ * para confirmar o cancelar. Valida que los campos estén completos antes de habilitar "OK".
+ *
+ * @param initial   Objeto [Book] con datos actuales o `null` para creación.
+ * @param onConfirm Llamada de retorno que recibe el [Book] actualizado o nuevo.
+ * @param onDismiss Llamada de retorno para cerrar el diálogo sin guardar.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookDialogH(

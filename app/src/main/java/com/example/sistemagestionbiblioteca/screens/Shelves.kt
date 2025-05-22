@@ -63,6 +63,17 @@ import com.example.sistemagestionbiblioteca.data.shelves.Shelf
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 
+
+/**
+ * Pantalla de estanterías donde se muestran las estanterías con sus libros.
+ *
+ * Permite refrescar la lista mediante pull-to-refresh, ver el número de libros
+ * y acceder a la eliminación de cada libro. Usa [ShelvesViewModel] para la lógica.
+ *
+ * @param navController   Controlador de navegación para cambiar de pantalla.
+ * @param currentUserId   ID del usuario autenticado, usado en rutas parametrizadas.
+ * @param viewModel       Instancia de [ShelvesViewModel] inyectada con [ShelvesViewModelFactory].
+ */
 @Composable
 fun Shelves(
     navController: NavController,
@@ -96,7 +107,7 @@ fun Shelves(
                 .padding(paddingValues)
         ) {
             if (isRefreshing) {
-                // Placeholder de carga con 3 secciones y 3 tarjetas cada una
+
                 LazyColumn(Modifier.fillMaxSize().padding(8.dp)) {
                     items(3) { _ ->
                         // Cabecera fantasma
@@ -107,7 +118,7 @@ fun Shelves(
                                 .background(Color.Gray.copy(alpha = 0.3f))
                         )
                         Spacer(Modifier.height(8.dp))
-                        // Fila de tarjetas fantasma
+
                         LazyRow(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             contentPadding = PaddingValues(horizontal = 8.dp)
@@ -185,8 +196,16 @@ fun Shelves(
 }
 
 
-
-
+/**
+ * Tarjeta de libro usada dentro de la pantalla de estanterías.
+ *
+ * Muestra la portada y datos básicos del libro, y ofrece un botón
+ * para eliminarlo de la estantería correspondiente.
+ *
+ * @param book      Objeto [Book] con datos del libro a mostrar.
+ * @param onDelete  Lambda llamada cuando el usuario pulsa el botón de borrar.
+ * @param modifier  Modificador para ajustar layout o comportamiento del card.
+ */
 
 @Composable
 fun ShelvesBookCard(
