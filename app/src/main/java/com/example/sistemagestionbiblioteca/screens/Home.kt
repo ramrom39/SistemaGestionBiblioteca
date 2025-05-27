@@ -101,7 +101,6 @@ fun Home(navController: NavController,currentUserId: Int) {
         }
     }
     LaunchedEffect(Unit) {
-
         catVm.fetchCategories()
         bookVm.fetchBooks()
     }

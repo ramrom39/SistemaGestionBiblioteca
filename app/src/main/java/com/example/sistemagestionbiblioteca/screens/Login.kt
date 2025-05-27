@@ -102,7 +102,6 @@ fun Login(navController: NavController) {
                 modifier           = Modifier.matchParentSize(),
                 contentScale       = ContentScale.Crop
             )
-
             Box(
                 modifier = Modifier
                     .padding(horizontal = 24.dp)
@@ -110,13 +109,14 @@ fun Login(navController: NavController) {
                     .shadow(1.dp, RoundedCornerShape(8.dp))
                     .background(Color.White, RoundedCornerShape(8.dp))
             ) {
+
                 Column(
                     modifier            = Modifier
                         .padding(24.dp)
                         .fillMaxWidth(),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("Iniciar Sesión", fontSize = 30.sp, color = Color(0xFFDC993F))
+                    Text("Iniciar Sesión", fontSize = 30.sp, color = Color(0xFFF6B459))
                     Spacer(Modifier.height(24.dp))
 
                     OutlinedTextField(
